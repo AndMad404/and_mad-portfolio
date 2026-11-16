@@ -1,0 +1,5 @@
+# studio/
+
+## code
+
+- `main.tsx`

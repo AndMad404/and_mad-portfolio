@@ -1,0 +1,129 @@
+/* Each folder is one continuous silhouette, including its title tab. */
+.folder-color-0 {
+  --folder-color: var(--color-sky);
+}
+.folder-color-1 {
+  --folder-color: var(--color-steel);
+}
+.folder-color-2 {
+  --folder-color: var(--color-blue-gray);
+}
+.folder-stack {
+  display: grid;
+  overflow: clip;
+  isolation: isolate;
+  margin-top: var(--space-half);
+  padding: 0 var(--space-quarter) var(--space-three-quarters) 0;
+}
+.folder-layer {
+  grid-area: 1 / 1;
+  position: relative;
+  min-width: 0;
+  color: #080f14;
+  pointer-events: none;
+  z-index: calc(3 - var(--folder-depth));
+  transform: translateX(calc(var(--folder-index) * 32.22%));
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.folder-silhouette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0.35rem 0.3rem #17242e18);
+}
+.folder-silhouette path {
+  fill: var(--folder-color);
+  stroke: #17242e66;
+  stroke-width: 1;
+}
+.folder-layer .folder-silhouette {
+  /* Rear folders expose only their tabs, never a body beyond the front edge. */
+  clip-path: inset(0 70% 88.333333% 0);
+  filter: none;
+}
+.public-site .folder-tab {
+  position: absolute;
+  top: 1.6%;
+  left: 1.5%;
+  width: 26%;
+  height: 9.5%;
+  padding: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: inherit;
+  pointer-events: auto;
+  font-size: var(--text-ui);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+.folder-tab-number {
+  display: block;
+  font:
+    0.7em/1.3 "Courier New",
+    monospace;
+}
+.folder-panel {
+  position: relative;
+  padding: var(--space-1-5) var(--space-half) var(--space-three-quarters);
+  min-height: 28rem;
+}
+.public-site .folder-panel h2 {
+  font-size: clamp(1.25rem, 1rem + 0.5vw, 2rem);
+  line-height: 1.25;
+  margin: 0 0 var(--space-half);
+  letter-spacing: -0.025em;
+}
+.folder-panel dl {
+  margin: 0;
+}
+.folder-panel dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: var(--space-half);
+  padding: var(--space-quarter) 0;
+  border-top: 1px solid #17242e40;
+  font:
+    var(--text-ui) / 1.6 "Courier New",
+    monospace;
+}
+.folder-panel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.public-site .folder-detail {
+  font-size: var(--text-ui);
+  margin: var(--space-half) 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .folder-layer,
+  .public-site .folder-tab,
+  .folder-silhouette path,
+  .folder-sheet-content {
+    transition: none;
+  }
+}
+
+/* One opaque body owns the current title, color and data. */
+.folder-body {
+  grid-area: 1 / 1;
+  position: relative;
+  min-width: 0;
+  z-index: 0;
+  color: #080f14;
+}
+
+
+/* Reference grid on navy surfaces, including the existing selected controls. */
+.public-site .stage-card.stage-1,
+.public-site .comparison-toolbar button[aria-pressed="true"],
+.public-site .navigation-status {
+  background-color: var(--surface-dark);
+  background-image: var(--surface-dark-grid);
+  background-size: var(--surface-dark-grid-size);
+}
+
+

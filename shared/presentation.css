@@ -1,0 +1,469 @@
+.case-cover {
+  --cover-blue: var(--color-steel);
+  position: relative;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  aspect-ratio: 1.4;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout paint;
+  container-type: inline-size;
+  min-height: 20rem;
+  overflow-wrap: anywhere;
+}
+.cover-caption {
+  position: absolute;
+  z-index: 2;
+  left: clamp(0.75rem, 3cqw, 2rem);
+  bottom: 1rem;
+  font:
+    10px/1.4 "Courier New",
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: clamp(0.75rem, 0.65rem + 0.3cqw, 1rem);
+  max-width: calc(100% - 1.5rem);
+}
+.cover-drawing {
+  width: 100%;
+  height: 100%;
+  padding: var(--space-half) var(--space-three-quarters) var(--space-1);
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+.cms-window {
+  background: #ffffff;
+  border: 1px solid var(--color-blue-gray);
+  width: 100%;
+  max-width: none;
+  box-shadow: 12px 12px 0 var(--color-blue-gray);
+  min-width: 0;
+}
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-quarter);
+  justify-content: space-between;
+  padding: var(--space-quarter);
+  border-bottom: 1px solid var(--color-line);
+  font:
+    10px/1.4 "Courier New",
+    monospace;
+  letter-spacing: 0.06em;
+  font-size: clamp(0.625rem, 1.8cqw, 1rem);
+  flex-wrap: wrap;
+}
+.window-bar .pixel-mark {
+  width: 9px;
+  height: 9px;
+  background: var(--color-steel);
+  flex: none;
+}
+.cms-table {
+  padding: 0 var(--space-quarter);
+}
+.cms-table > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-quarter);
+  padding: var(--space-quarter) 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: clamp(0.75rem, 2.2cqw, 1.375rem);
+}
+.cms-table > div:first-child {
+  font:
+    9px/1.6 "Courier New",
+    monospace;
+  color: var(--color-muted);
+  font-size: clamp(0.625rem, 1.8cqw, 1rem);
+}
+.cms-table > div:nth-child(3) span {
+  color: var(--color-link);
+}
+.cms-note {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-quarter);
+  padding: var(--space-quarter);
+  font:
+    10px/1.5 "Courier New",
+    monospace;
+  font-size: clamp(0.625rem, 1.8cqw, 1rem);
+}
+.cover-web {
+  background: var(--color-sky);
+}
+.web-composition {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-width: 0;
+}
+.web-window {
+  width: 86%;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid var(--color-steel);
+  overflow: hidden;
+}
+.web-window .window-bar {
+  border-color: var(--color-line);
+}
+.web-page {
+  padding: var(--space-half) var(--space-three-quarters);
+}
+.web-page > span {
+  font:
+    8px/1.4 "Courier New",
+    monospace;
+  font-size: clamp(0.625rem, 1.4cqw, 1rem);
+}
+.web-page > strong {
+  display: block;
+  font-size: clamp(1.25rem, 5cqw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  margin: var(--space-quarter) 0;
+}
+.block-art {
+  height: clamp(2.5rem, 13cqw, 8rem);
+  display: flex;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.block-art i {
+  display: block;
+  width: 33.34%;
+  background: var(--color-steel);
+}
+.block-art i:nth-child(2) {
+  margin-top: var(--space-half);
+  background: var(--color-blue-gray);
+}
+.block-art i:nth-child(3) {
+  margin-top: var(--space-1);
+}
+.mock-lines {
+  display: grid;
+  gap: var(--space-eighth);
+  margin-top: var(--space-quarter);
+}
+.mock-lines i {
+  height: 3px;
+  background: var(--color-blue-gray);
+  width: 100%;
+}
+.mock-lines i:last-child {
+  width: 65%;
+}
+.web-phone {
+  position: absolute;
+  width: 29%;
+  bottom: -8px;
+  right: -8px;
+  height: 72%;
+  padding: var(--space-quarter) var(--space-eighth);
+  border: 2px solid var(--color-ink);
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 8px 8px 0 #4682b433;
+}
+.web-phone > div:first-child {
+  height: 3px;
+  width: 25%;
+  margin: calc(-1 * var(--space-eighth)) auto var(--space-quarter);
+  background: var(--color-ink);
+}
+.web-phone strong {
+  display: block;
+  font-size: clamp(0.625rem, 2.2cqw, 1.5rem);
+  line-height: 1.15;
+}
+.phone-art {
+  margin-top: var(--space-quarter);
+  height: 35%;
+  background: var(--color-steel);
+  clip-path: polygon(0 0, 68% 0, 68% 35%, 100% 35%, 100% 100%, 0 100%);
+}
+.cover-system {
+  background-color: var(--surface-dark);
+  color: var(--color-paper);
+}
+.cover-system .cover-caption {
+  color: var(--color-blue-gray);
+}
+.system-drawing {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.system-label {
+  display: block;
+  font:
+    10px/1.5 "Courier New",
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: clamp(0.625rem, 1.8cqw, 1rem);
+}
+.system-nodes {
+  display: grid;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--space-half) 0;
+  gap: var(--space-eighth);
+  font:
+    11px/1.4 "Courier New",
+    monospace;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  font-size: clamp(0.625rem, 2cqw, 1.25rem);
+}
+.system-nodes span {
+  padding: var(--space-quarter) var(--space-eighth);
+  border: 1px solid var(--color-blue-gray);
+  flex: 1;
+  text-align: center;
+}
+.system-nodes span:last-child {
+  background: var(--color-sky);
+  color: var(--color-ink);
+  border-color: var(--color-sky);
+}
+.system-nodes i {
+  font-style: normal;
+}
+.system-rule {
+  height: 1px;
+  background: var(--color-blue-gray);
+  margin-bottom: var(--space-half);
+}
+.detail.editorial-detail {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding-bottom: var(--space-1);
+  overflow-wrap: anywhere;
+}
+.editorial-detail .detail-heading {
+  max-width: 65ch;
+  padding: var(--space-half) 0 var(--space-1);
+}
+.detail.editorial-detail h1 {
+  margin: var(--space-half) 0 var(--space-three-quarters);
+  font-size: clamp(2.25rem, 1.5rem + 3vw, 6.5rem);
+  max-width: none;
+}
+.editorial-detail .case-cover {
+  max-height: none;
+  aspect-ratio: 1.45;
+}
+.editorial-detail .cover-drawing {
+  padding: var(--space-half) var(--space-three-quarters) var(--space-1);
+}
+.editorial-detail .web-composition {
+  max-height: none;
+}
+.editorial-detail .detail-body {
+  max-width: 70ch;
+  margin: var(--space-1) auto 0;
+}
+.detail-block {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  padding: var(--space-three-quarters) 0;
+  gap: var(--space-quarter);
+  border-top: 1px solid var(--color-line);
+}
+.detail-number {
+  color: var(--color-link);
+  font:
+    13px/2 "Courier New",
+    monospace;
+  font-size: var(--text-ui, 0.875rem);
+}
+.editorial-detail .detail-block h2 {
+  font-size: clamp(1.5rem, 1.1rem + 0.8vw, 2.5rem);
+  margin: 0 0 var(--space-half);
+}
+.editorial-detail .detail-block p {
+  white-space: pre-line;
+  margin: 0;
+}
+.editorial-detail .detail-block ul {
+  margin: 0;
+  padding-left: var(--space-half);
+  list-style: square;
+}
+.editorial-detail .detail-block li {
+  margin-bottom: var(--space-half);
+}
+.detail-limits {
+  background: var(--color-surface-sky);
+  padding: var(--space-half) var(--space-quarter);
+}
+.evidence-gallery {
+  margin: var(--space-1-5) 0 var(--space-half);
+}
+.evidence-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-half);
+  margin-bottom: var(--space-half);
+}
+.editorial-detail .evidence-heading h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 0.8vw, 2.5rem);
+}
+.evidence-controls {
+  display: flex;
+  gap: var(--space-quarter);
+}
+.evidence-controls button {
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--color-steel);
+  border-radius: 0;
+}
+.evidence-track {
+  display: flex;
+  gap: var(--space-half);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  padding: var(--space-eighth) 0 var(--space-half);
+  margin: 0;
+  list-style: none;
+  scrollbar-color: var(--color-steel) var(--color-surface);
+}
+.evidence-item {
+  flex: 0 0 min(100%, 45rem);
+  min-width: 0;
+  scroll-snap-align: start;
+  padding: var(--space-half);
+  background: #ffffff;
+  border: 1px solid var(--color-line);
+  overflow-wrap: anywhere;
+}
+.evidence-item:only-child {
+  flex-basis: 100%;
+}
+.evidence-number {
+  font:
+    11px/1.5 "Courier New",
+    monospace;
+  color: var(--color-muted);
+  font-size: var(--text-small, 0.75rem);
+}
+.evidence-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: var(--space-half);
+}
+.evidence-item p {
+  margin-bottom: 0;
+}
+.detail-contact {
+  padding-top: var(--space-half);
+}
+@media (min-width: 48rem) {
+  .case-cover {
+    aspect-ratio: 1.55;
+  }
+  .detail-block {
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: var(--space-half);
+    padding-block: var(--space-1);
+  }
+  .detail-limits {
+    padding: var(--space-three-quarters) var(--space-half);
+  }
+  .editorial-detail .case-cover {
+    aspect-ratio: 2.25;
+    max-height: 44rem;
+  }
+}
+
+
+/* Shared blueprint texture: identical 40px cells on the page and case covers. */
+.blueprint-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--surface-dark);
+}
+.blueprint-plane {
+  position: absolute;
+  inset: -120px;
+  transform: translate3d(0, var(--blueprint-shift, 0px), 0);
+}
+.blueprint-plane svg { width: 100%; height: 100%; display: block; }
+.blueprint-grid-line { stroke: rgb(145 159 186 / 9%); stroke-width: 1; }
+.blueprint-connections path {
+  stroke: var(--color-steel);
+  stroke-width: 1.5;
+  fill: none;
+  opacity: .55;
+}
+.blueprint-nodes circle { opacity: .85; }
+
+.case-cover .blueprint-background { position: absolute; z-index: 0; }
+.case-cover .blueprint-plane {
+  inset: -48px;
+  transform: translate3d(0, calc(var(--blueprint-shift, 0px) * .35), 0);
+}
+.cover-system .cover-drawing { position: relative; z-index: 1; }
+/* One viewport-wide boot wave, rather than an ignition in each repeated tile. */
+.blueprint-signal { opacity: 0; offset-distance: 0%; offset-rotate: 0deg; }
+@keyframes blueprint-boot {
+  from { mask-size: 0% 0%; opacity: 0; }
+  12% { opacity: .35; }
+  to { mask-size: 320% 320%; opacity: 1; }
+}
+@keyframes blueprint-travel {
+  0% { offset-distance: 0%; }
+  12.5% { offset-distance: 12.5%; }
+  25% { offset-distance: 25%; }
+  37.5% { offset-distance: 37.5%; }
+  50% { offset-distance: 50%; }
+  62.5% { offset-distance: 62.5%; }
+  75% { offset-distance: 75%; }
+  87.5% { offset-distance: 87.5%; }
+  100% { offset-distance: 100%; }
+}
+@keyframes blueprint-signal-light {
+  0%, 100% { opacity: 0; }
+  15%, 85% { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .blueprint-node-field, .blueprint-line-field {
+    mask-image: radial-gradient(ellipse at center, #000 42%, #000b 52%, transparent 68%);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    animation: blueprint-boot 1800ms cubic-bezier(.65, 0, .35, 1) both;
+  }
+  .blueprint-line-field { animation-delay: 1800ms; }
+  .blueprint-signal {
+    animation: blueprint-travel var(--travel-duration) cubic-bezier(.65, 0, .35, 1) var(--travel-delay) infinite,
+      blueprint-signal-light var(--travel-duration) ease-in-out var(--travel-delay) infinite;
+  }
+  .blueprint-background[data-paused="true"] :is(circle, path, rect) { animation-play-state: paused; }
+}
+
+
+/* Continuous energy canvas avoids all repeated-SVG tile clipping. Feather width: -25%. */
+.blueprint-plane, .case-cover .blueprint-plane { transform: none; }
+.blueprint-energy-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.blueprint-background[data-runtime="ready"] .blueprint-plane > svg { display: none; }
+.blueprint-background[data-runtime="ready"] .blueprint-plane {
+  background-image: linear-gradient(90deg, rgb(145 159 186 / 9%) 1px, transparent 1px),
+    linear-gradient(rgb(145 159 186 / 9%) 1px, transparent 1px);
+  background-size: var(--grid-unit) var(--grid-unit);
+}
+.blueprint-background .blueprint-plane > svg :is(circle, rect, path) { animation: none !important; }

@@ -1,0 +1,60 @@
+/* Compact layouts use subdivisions of the same node lattice, never another unit. */
+@media (width < 48rem) {
+  .public-site { --content-space: var(--space-half); --gutter: var(--space-half); }
+}
+.public-site .header .shell { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 48rem) {
+  .public-site .header .shell { grid-template-columns: auto minmax(0, 1fr); gap: var(--space-1); }
+  .public-site .header nav { width: auto; justify-self: end; gap: var(--space-1); }
+}
+
+
+/* Twelve-track desktop grid, with the node unit as the column gutter. */
+@media (min-width: 64rem) {
+  .public-site .work-type-body, .public-site .profile-layout, .public-site .hero-copy {
+    display: grid;
+    grid-template-columns: repeat(var(--layout-columns), minmax(0, 1fr));
+    column-gap: var(--space-1);
+  }
+  .public-site .work-type-content, .public-site .profile-layout > :first-child { grid-column: 1 / span 6; }
+  .public-site .work-type-window, .public-site .profile-layout > :last-child { grid-column: 7 / span 6; }
+  .public-site .hero h1 { grid-column: 1 / span 7; }
+  .public-site .hero .lede, .public-site .hero .hero-actions { grid-column: 8 / span 5; }
+}
+
+/* Lattice-snapped tracks: a fluid 12-track pitch (~86 px) is never a multiple of the 40 px node cell, so column
+ * edges drift across the nodes. Each line n·pitch is rounded to the nearest node line instead; the gutter stays
+ * one cell, so every column start and end sits on a node line. The last track absorbs the remainder. The grid's
+ * left edge is already on the lattice (page margin and paddings are multiples of the unit; no borders on the way). */
+@supports (width: round(1px, 1px)) {
+  @media (min-width: 64rem) {
+    .public-site .work-type-body, .public-site .profile-layout, .public-site .hero-copy {
+      --pitch: calc((100% + var(--space-1)) / 12);
+      --line-1: round(var(--pitch), var(--space-1));
+      --line-2: round(calc(var(--pitch) * 2), var(--space-1));
+      --line-3: round(calc(var(--pitch) * 3), var(--space-1));
+      --line-4: round(calc(var(--pitch) * 4), var(--space-1));
+      --line-5: round(calc(var(--pitch) * 5), var(--space-1));
+      --line-6: round(calc(var(--pitch) * 6), var(--space-1));
+      --line-7: round(calc(var(--pitch) * 7), var(--space-1));
+      --line-8: round(calc(var(--pitch) * 8), var(--space-1));
+      --line-9: round(calc(var(--pitch) * 9), var(--space-1));
+      --line-10: round(calc(var(--pitch) * 10), var(--space-1));
+      --line-11: round(calc(var(--pitch) * 11), var(--space-1));
+      grid-template-columns:
+        calc(var(--line-1) - var(--space-1))
+        calc(var(--line-2) - var(--line-1) - var(--space-1))
+        calc(var(--line-3) - var(--line-2) - var(--space-1))
+        calc(var(--line-4) - var(--line-3) - var(--space-1))
+        calc(var(--line-5) - var(--line-4) - var(--space-1))
+        calc(var(--line-6) - var(--line-5) - var(--space-1))
+        calc(var(--line-7) - var(--line-6) - var(--space-1))
+        calc(var(--line-8) - var(--line-7) - var(--space-1))
+        calc(var(--line-9) - var(--line-8) - var(--space-1))
+        calc(var(--line-10) - var(--line-9) - var(--space-1))
+        calc(var(--line-11) - var(--line-10) - var(--space-1))
+        minmax(0, 1fr);
+    }
+  }
+}
+

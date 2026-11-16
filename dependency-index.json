@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 2,
+  "project": "Portafolio_And_Mad",
+  "ignoreGlobs": [
+    "node_modules/**",
+    "**/node_modules/**",
+    "build/**",
+    "dist/**",
+    ".wrangler/**",
+    ".react-router/**",
+    "context-library/**",
+    "docs/legacy/**"
+  ],
+  "rules": [
+    {
+      "id": "public-content",
+      "changes": [
+        "content/published.json",
+        "app/content.ts",
+        "app/routes/home.tsx",
+        "app/components/PageMotion.ts",
+        "shared/contracts.ts",
+        "shared/EntryView.tsx",
+        "shared/EvidenceGallery.tsx",
+        "server/public.ts",
+        "app/public.css",
+        "app/styles/**",
+        "shared/tokens.css",
+        "shared/presentation.css",
+        "shared/BlueprintBackground.tsx",
+        "shared/BlueprintEnergy.ts"
+      ],
+      "area": "Contenido público, contrato y rutas",
+      "tests": [
+        "tests/content.test.ts"
+      ]
+    },
+    {
+      "id": "editorial-backend",
+      "changes": [
+        "server/**",
+        "shared/contracts.ts",
+        "migrations/**"
+      ],
+      "area": "Backend editorial, autenticación y persistencia",
+      "tests": [
+        "tests/backend.test.ts"
+      ]
+    },
+    {
+      "id": "local-connector",
+      "changes": [
+        "connector/**"
+      ],
+      "area": "Conector y lectura local restringida",
+      "tests": [
+        "tests/connector.test.ts"
+      ]
+    }
+  ],
+  "graphSnapshot": {
+    "generatorVersion": 1,
+    "relationCount": 93,
+    "algorithm": "sha256",
+    "digest": "a82f6ffc1a8833f4fec053b55214cc75be38ee3a49d351f85899082b1921ec1e"
+  }
+}

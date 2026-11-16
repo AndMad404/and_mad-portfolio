@@ -1,0 +1,49 @@
+/* Work types reserve a clean window onto the single viewport parallax. */
+.public-site .project-grid:has(> .work-type) { padding: 0; gap: var(--content-space); }
+.public-site .project-grid > .work-type {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.project-grid > .work-type::before { display: none; }
+.public-site .project-card .work-type-title {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--space-quarter) var(--content-space);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: .75rem .75rem 0 0;
+  background: var(--color-sky);
+  font-size: clamp(1.125rem, 1rem + .5vw, 1.75rem);
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+.work-type-body {
+  display: grid;
+  gap: var(--content-space);
+  padding: var(--content-space);
+  /* Inset ring instead of a border: a border would push the content box 1px off the node lattice. */
+  box-shadow: inset 0 0 0 1px var(--line);
+  border-radius: 0 .75rem .75rem .75rem;
+}
+.work-type-window {
+  min-height: 12rem;
+  aspect-ratio: 1.5;
+  border-radius: .75rem;
+  background: var(--surface-dark);
+}
+.work-type-window[data-blueprint-window="true"] { background: transparent; }
+.work-type-content { display: grid; gap: var(--content-space); align-content: start; }
+.public-site .work-type-content > * { margin: 0; }
+.work-experiences { padding: 0; list-style: none; display: grid; gap: var(--content-space); }
+.work-experiences a { display: inline-block; min-height: 2.75rem; padding-block: var(--space-quarter); color: var(--blue); }
+@media (min-width: 64rem) {
+  .work-type-body { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
+  .work-type-window { grid-column: 2; grid-row: 1; }
+  .work-type-content { grid-column: 1; grid-row: 1; }
+}
+

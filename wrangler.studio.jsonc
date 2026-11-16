@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "and-mad-editorial",
+  "main": "server/worker.ts",
+  "compatibility_date": "2026-11-13",
+  "assets": {
+    "directory": "build/studio",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "editorial",
+      "database_id": "REPLACE_WITH_D1_ID",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "triggers": { "crons": ["* * * * *"] },
+  "vars": {
+    "GITHUB_REPOSITORY": "AndMad404/and_mad-portfolio",
+    "GITHUB_REF": "main",
+  },
+  "observability": { "enabled": false },
+}

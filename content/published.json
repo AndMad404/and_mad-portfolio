@@ -1,0 +1,447 @@
+{
+  "version": 1,
+  "releaseId": "contenido-seo-2026-11-15",
+  "entries": [
+    {
+      "id": "fak",
+      "slug": "fak",
+      "kind": "case",
+      "title": "Creación de sitios web: Federación de Kendo",
+      "summary": "Plataforma institucional bilingüe que conecta eventos, contenido y publicación para facilitar el mantenimiento de una federación.",
+      "problem": "Actualizar eventos y galerías exigía una alternativa a editar cada página a mano, con controles para evitar publicar información incompleta.",
+      "contribution": "Desarrollé la plataforma con React y TypeScript, desde el diseño inicial en Figma hasta la implementación, las pruebas y la documentación. Construí componentes responsive e incorporé animaciones y transiciones.",
+      "decisions": [
+        "Usar Calendar como fuente: consumir ICS por HTTP y transformar sus eventos en datos del sitio.",
+        "Validar antes de publicar: detectar datos malformados, cambios históricos y desapariciones masivas; conservar la última versión válida ante fallos.",
+        "Verificar la interfaz con Playwright, regresión visual y axe-core, tomando WCAG 2.1 AA como referencia; integrar tipos y pruebas en CI.",
+        "Optimizar imágenes WebP y su carga, analizar Core Web Vitals con auditorías de Lighthouse y Screaming Frog, y generar HTML y metadatos por ruta.",
+        "Revisar cambios sensibles: exigir aprobaciones vigentes y depurar información sensible de los diagnósticos."
+      ],
+      "results": "Plataforma completada en cuatro meses de tiempo libre. Eventos y galerías se actualizan desde sus fuentes sin editar cada página.",
+      "limits": "La duración es declarada. No hay mediciones de tráfico o impacto comercial que permitan atribuir mejoras porcentuales.",
+      "tags": [
+        "React",
+        "TypeScript",
+        "Automatización",
+        "Integración",
+        "Data Quality",
+        "QA",
+        "SEO técnico"
+      ],
+      "evidence": [
+        {
+          "id": "fak-sitio",
+          "label": "Sitio de la Federación.",
+          "url": "https://fak-kendo.org/"
+        },
+        {
+          "id": "fak-codigo",
+          "label": "Código y verificaciones de la plataforma.",
+          "url": "https://github.com/AndMad404/FederacionDeKendo"
+        },
+        {
+          "id": "fak-master",
+          "label": "CV: participación y duración declaradas."
+        }
+      ]
+    },
+    {
+      "id": "operacion-cms",
+      "slug": "operacion-de-contenido-cms",
+      "kind": "case",
+      "title": "CMS: plantillas y gestión de contenido",
+      "summary": "Creación de plantillas, componentes y páginas administrables en WordPress y AEM, junto con la gestión y revisión de contenido.",
+      "problem": "Los lanzamientos y actualizaciones debían cumplir requisitos de marca, contenido y funcionamiento, incluso al modificar código existente.",
+      "contribution": "Como Content Analyst, de julio de 2019 a octubre de 2025, mantuve experiencias en Adobe Experience Manager (AEM), corregí CSS y JavaScript y desarrollé layouts, formularios de marketing y componentes Vue con animaciones y transiciones. También revisé activos digitales y contenido antes de su publicación. En WordPress, entre enero de 2018 y julio de 2019, desarrollé sitios con HTML, CSS, JavaScript, PHP y Elementor Pro, definiendo estructuras de páginas y documentando su administración.",
+      "decisions": [
+        "Contrastar las entregas con diseños y requisitos de marca, incluidos comportamiento responsive y accesibilidad.",
+        "Reproducir defectos y documentar su entorno para coordinar correcciones con QA y desarrollo.",
+        "Crear estructuras de páginas reutilizables y documentar su uso para que personas no técnicas puedan gestionar el contenido."
+      ],
+      "results": "Entregas de contenido, páginas de campaña, mejoras de interfaz y documentación para usuarios.",
+      "limits": "La experiencia en AEM y WordPress corresponde a empleos y entregas distintos; no se presenta como una sola plataforma. No hay capturas públicas de esos clientes ni métricas de conversión. El trabajo en AEM acredita contenido y frontend, no desarrollo backend Java/OSGi.",
+      "tags": [
+        "CMS",
+        "AEM",
+        "WordPress",
+        "Plantillas",
+        "Gestión de contenido"
+      ],
+      "evidence": [
+        {
+          "id": "cv-cms",
+          "label": "CV: responsabilidades y entregables."
+        },
+        {
+          "id": "cv-wordpress",
+          "label": "CV: funciones y fechas en desarrollo WordPress."
+        }
+      ]
+    },
+    {
+      "id": "auditoria-datos",
+      "slug": "auditoria-de-datos-aem",
+      "kind": "case",
+      "title": "Calidad de datos y herramientas de revisión",
+      "summary": "Investigación de errores de catálogo y desarrollo de herramientas para preparar archivos, inspeccionar XML, documentar auditorías y extraer productos por ID.",
+      "problem": "Los registros obsoletos o inexactos afectaban indicadores de calidad y requerían distinguir errores de carga de problemas de presentación.",
+      "contribution": "Lideré la investigación de archivos .content.xml, audité el catálogo completo y clasifiqué los errores. Preparé casos de prueba y compartí hallazgos con QA, desarrollo y Marketing.",
+      "decisions": [
+        "Convertir los hallazgos en criterios de validación y capacitar a los equipos para revisar incidencias similares.",
+        "ExcelBatch: convertir y reorganizar archivos de Excel por lotes antes de revisar sus datos.",
+        "CleanTreeFlow: transformar estructuras XML de AEM en rutas legibles para apoyar la inspección.",
+        "Informes de auditoría: reunir capturas responsive y generar documentos PDF revisables.",
+        "Extractor de productos: preparar una lista de productos a partir de sus identificadores en un prototipo local."
+      ],
+      "results": "La investigación sustentó la limpieza de datos y amplió el alcance de QA.",
+      "limits": "Las pruebas automatizadas las implementó la QA Automation Lead a partir del contexto y los casos compartidos. Los datos y documentos del cliente son privados; no se publica el catálogo ni se atribuyen porcentajes de mejora a la investigación. Las herramientas tienen alcances distintos: ExcelBatch y CleanTreeFlow se utilizaron en el entorno empresarial; los informes son un flujo local específico y el extractor es un prototipo local. CleanTreeFlow no recorre todos los productos ni sustituye una auditoría completa.",
+      "tags": [
+        "Data Quality",
+        "AEM",
+        "XML",
+        "QA"
+      ],
+      "evidence": [
+        {
+          "id": "auditoria-master",
+          "label": "CV: investigación, casos de prueba y capacitación."
+        },
+        {
+          "id": "excelbatch-code",
+          "label": "Código de las macros.",
+          "url": "https://github.com/AndMad404/ExcelBatch"
+        },
+        {
+          "id": "cleantree-code",
+          "label": "Script Python y documentación.",
+          "url": "https://github.com/AndMad404/CleanTreeFlow"
+        }
+      ]
+    },
+    {
+      "id": "portafolio-editorial",
+      "slug": "plataforma-editorial",
+      "kind": "case",
+      "title": "Publicación y flujos de contenido",
+      "summary": "Flujos para preparar, revisar y publicar contenido: actualización de eventos en Federación y revisión editorial en este portafolio.",
+      "problem": "Trabajar con fuentes privadas exige separar investigación, borradores y contenido aprobado, y saber qué versión se está publicando.",
+      "contribution": "Definí el alcance y revisé las iteraciones de un sitio React y TypeScript con panel privado, Workers, D1 y Drizzle. En la Federación de Kendo desarrollé el flujo que transforma eventos de Calendar en contenido del sitio, con validaciones antes de publicar.",
+      "decisions": [
+        "Actualizar eventos desde Calendar sin editar cada página; validar los cambios y conservar la última versión válida ante fallos.",
+        "Generar el sitio desde un snapshot aprobado y mantener administración y consultas en una superficie privada.",
+        "Conservar revisiones, detectar conflictos de edición y congelar contenido y commit para cada publicación.",
+        "Limitar el conector a la lectura de recursos locales permitidos, sin convertir consultas en publicaciones automáticas."
+      ],
+      "results": "Código local con validación de contratos, revisiones editoriales, conector y builds separados para el sitio y el panel.",
+      "limits": "El despliegue y el ciclo editorial remoto no están acreditados. Backend y bases de datos son aprendizaje aplicado en este proyecto; no representan experiencia previa en backend empresarial. El flujo de eventos pertenece a Federación; el panel editorial pertenece al portafolio. Son proyectos distintos.",
+      "tags": [
+        "Automatización",
+        "Contenido",
+        "Eventos",
+        "Integración"
+      ],
+      "evidence": [
+        {
+          "id": "editorial-local",
+          "label": "Código, contratos y registro de verificaciones locales del portafolio."
+        },
+        {
+          "id": "fak-sitio",
+          "label": "Sitio de la Federación.",
+          "url": "https://fak-kendo.org/"
+        },
+        {
+          "id": "fak-codigo",
+          "label": "Código y verificaciones de la plataforma.",
+          "url": "https://github.com/AndMad404/FederacionDeKendo"
+        }
+      ]
+    },
+    {
+      "id": "excelbatch",
+      "slug": "excelbatch",
+      "kind": "case",
+      "title": "ExcelBatch: preparación de archivos por lotes",
+      "summary": "Macros de Excel para preparar archivos de producto por lotes durante actualizaciones mensuales.",
+      "problem": "La preparación manual repetía conversiones de formato y cambios de columnas en cada documento.",
+      "contribution": "Desarrollé y utilicé ExcelBatch en un entorno empresarial para convertir XLS a XLSX y reorganizar columnas en varios libros y hojas.",
+      "decisions": [
+        "Separar conversión y reorganización para ejecutar únicamente la operación necesaria.",
+        "Procesar varios archivos en un lote manual, con errores por archivo y un resumen para revisar el resultado."
+      ],
+      "results": "Para cuatro a ocho documentos mensuales, la preparación pasó de unas dos horas por documento a cerca de un minuto por lote.",
+      "limits": "Son tiempos aproximados declarados por mí, sin medición independiente. El proceso requiere ejecución manual; no demuestra una integración con bases de datos.",
+      "tags": [
+        "Automatización",
+        "Excel",
+        "VBA",
+        "Data Quality"
+      ],
+      "evidence": [
+        {
+          "id": "excelbatch-code",
+          "label": "Código de las macros.",
+          "url": "https://github.com/AndMad404/ExcelBatch"
+        },
+        {
+          "id": "excelbatch-master",
+          "label": "CV: uso laboral y tiempos declarados."
+        }
+      ]
+    },
+    {
+      "id": "cleantreeflow",
+      "slug": "cleantreeflow",
+      "kind": "case",
+      "title": "CleanTreeFlow: de XML a rutas legibles",
+      "summary": "Herramienta Python que convierte estructuras XML de AEM en rutas legibles para apoyar su inspección.",
+      "problem": "Los nombres codificados y la jerarquía del contenido dificultaban revisar relaciones entre proveedores, categorías y productos.",
+      "contribution": "Desarrollé y utilicé CleanTreeFlow en un entorno empresarial para recorrer archivos locales .content.xml y decodificar secuencias de nombres.",
+      "decisions": [
+        "Leer una copia local sin conectarse al CMS ni modificar el XML."
+      ],
+      "results": "Salida de texto por terminal con una ruta de producto legible por cada categoría.",
+      "limits": "No recorre todos los productos de cada categoría ni carga datos en una base de datos. Apoya la inspección; no sustituye una auditoría completa.",
+      "tags": [
+        "Python",
+        "XML",
+        "Automatización",
+        "Data Quality"
+      ],
+      "evidence": [
+        {
+          "id": "cleantree-code",
+          "label": "Script Python y documentación.",
+          "url": "https://github.com/AndMad404/CleanTreeFlow"
+        }
+      ]
+    },
+    {
+      "id": "auditoria-web",
+      "slug": "informes-de-auditoria-web",
+      "kind": "case",
+      "title": "Informes de auditoría web: capturas y PDF",
+      "summary": "Herramientas locales para preparar informes visuales a partir de capturas responsive.",
+      "problem": "Las observaciones de una auditoría necesitan capturas legibles y documentos que puedan revisarse y reproducirse.",
+      "contribution": "El proyecto reúne capturas con Playwright y Edge, generación de PDF con Python y comprobaciones de páginas, texto, enlaces y huella del documento.",
+      "decisions": [
+        "Separar fuentes, capturas optimizadas, documento de referencia y salida generada para conservar trazabilidad.",
+        "Resolver primero el informe de la Federación antes de extraer un motor configurable para otros clientes."
+      ],
+      "results": "Base preparada para reproducir un informe de 22 páginas, con comandos de generación y comprobación documentados.",
+      "limits": "El informe y sus recursos son privados. El flujo es específico de un cliente y no se ha vuelto a ejecutar para esta publicación.",
+      "tags": [
+        "Automatización",
+        "Python",
+        "Playwright",
+        "Documentación"
+      ],
+      "evidence": [
+        {
+          "id": "report-local",
+          "label": "Revisión local registrada del README, scripts y estructura del proyecto."
+        }
+      ]
+    },
+    {
+      "id": "extractor-carrito",
+      "slug": "extractor-de-productos",
+      "kind": "case",
+      "title": "Extractor de productos: revisión local de un carrito",
+      "summary": "Prototipo local para ordenar nombres, SKU y enlaces de productos copiados desde un carrito.",
+      "problem": "Recopilar varios productos a mano dificultaba conservar sus identificadores y enlaces para revisarlos después.",
+      "contribution": "La herramienta recibe una lista copiada con el marcador SKURL y la presenta en una tabla, dentro de un archivo HTML sin servidor.",
+      "decisions": [
+        "Copiar únicamente nombre, SKU y enlace limpio; señalar campos ausentes.",
+        "Procesar el texto localmente y borrarlo tras una lectura correcta, sin almacenamiento automático."
+      ],
+      "results": "Interfaz y lógica de extracción disponibles como prototipo local.",
+      "limits": "La verificación integral en navegador está pendiente. No consulta inventario ni establece equivalencias con productos o sistemas de pedidos.",
+      "tags": [
+        "JavaScript",
+        "Data Quality",
+        "Frontend"
+      ],
+      "evidence": [
+        {
+          "id": "extractor-local",
+          "label": "Revisión local registrada de la herramienta y su contrato de uso."
+        }
+      ]
+    },
+    {
+      "id": "eventos-combate",
+      "slug": "eventos-de-combate",
+      "kind": "case",
+      "title": "Eventos de combate: planificación de una plataforma",
+      "summary": "Proyecto en planificación para reunir eventos, federaciones y dojos de Costa Rica.",
+      "problem": "La información dispersa sobre eventos y organizaciones necesita una estructura común para consultarse y mantenerse.",
+      "contribution": "El trabajo define el alcance del piloto, la operación de datos y la experiencia pública.",
+      "decisions": [
+        "Delimitar el piloto antes de implementar integraciones.",
+        "Separar la arquitectura base de las funciones previstas para etapas posteriores."
+      ],
+      "results": "Alcance y arquitectura base documentados.",
+      "limits": "Nombre provisional. El MVP no está implementado ni validado; el repositorio inicial solo acredita la existencia del proyecto.",
+      "tags": [
+        "Planificación",
+        "Contenido"
+      ],
+      "evidence": [
+        {
+          "id": "combate-repo",
+          "label": "Repositorio inicial del proyecto.",
+          "url": "https://github.com/AndMad404/eventos-de-combate-regional"
+        }
+      ]
+    },
+    {
+      "id": "sitios-wordpress",
+      "slug": "sitios-con-wordpress",
+      "kind": "case",
+      "title": "WordPress: sitios para negocios",
+      "summary": "Experiencia laboral desarrollando sitios de negocio y comercio electrónico con WordPress.",
+      "problem": "Los clientes necesitaban presentar su oferta y poder actualizar el contenido después de la entrega.",
+      "contribution": "Entre enero de 2018 y julio de 2019 desarrollé sitios con HTML, CSS, JavaScript, PHP y Elementor Pro, a partir de requisitos acordados con los clientes.",
+      "decisions": [
+        "Traducir los requisitos en una estructura de páginas y contenido administrable.",
+        "Adaptar las interfaces a móvil y escritorio y optimizar imágenes y videos como parte del rendimiento y SEO técnico del sitio.",
+        "Documentar el uso del sitio para facilitar la gestión por personas no técnicas."
+      ],
+      "results": "Sitios, interfaces y documentación de administración entregados a clientes.",
+      "limits": "No hay capturas ni proyectos de cliente disponibles como muestras públicas de estas entregas.",
+      "tags": [
+        "WordPress",
+        "Frontend",
+        "SEO técnico",
+        "CMS"
+      ],
+      "evidence": [
+        {
+          "id": "cv-wordpress",
+          "label": "CV: funciones y fechas en desarrollo WordPress."
+        }
+      ]
+    },
+    {
+      "id": "gestor",
+      "slug": "gestor",
+      "kind": "case",
+      "title": "Gestor: preparación de publicaciones para Instagram",
+      "summary": "Diseño de un flujo privado para revisar contenido y preparar su publicación en Instagram.",
+      "problem": "Antes de publicar se necesita comprobar el texto, la imagen y la cuenta de destino, y evitar duplicados al reintentar.",
+      "contribution": "El proyecto documenta la preparación, revisión y confirmación de publicaciones.",
+      "decisions": [
+        "Mantener administración autenticada y credenciales en el servidor; sin calendario público en esta fase.",
+        "Comprobar la publicación en la cuenta de destino, además de la respuesta técnica de la API."
+      ],
+      "results": "Flujo previsto documentado para guiar la integración y su validación.",
+      "limits": "No se ha verificado una publicación real por API en Instagram. Publicar páginas desde el panel del portafolio no acredita esa integración.",
+      "tags": [
+        "Contenido",
+        "Integración"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "centrificador",
+      "slug": "centrificador",
+      "kind": "case",
+      "title": "Centrificador: exploración de herramientas editoriales",
+      "summary": "Fase futura de evaluación de componentes para edición de contenido y procesamiento de imágenes.",
+      "problem": "Antes de reutilizar componentes o ampliar el gestor, hay que delimitar qué problema resolverá esta herramienta.",
+      "contribution": "La base documentada reúne interfaz, API y procesamiento de imágenes. El trabajo previsto comienza por revisar qué puede conservarse.",
+      "decisions": [],
+      "results": "Documentación de una base existente.",
+      "limits": "Alcance del producto por definir. Su desarrollo paralelo requiere una primera publicación real por API en Instagram y la aprobación de la aplicación por Meta; ambos hitos siguen pendientes. La base necesita una auditoría de comportamiento.",
+      "tags": [
+        "Planificación"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "creacion-sitios",
+      "slug": "creacion-de-sitios",
+      "kind": "service",
+      "title": "Creación de sitios web",
+      "summary": "Sitios y landing pages que presentan tu oferta y facilitan que el visitante encuentre cómo contactarte.",
+      "problem": "Tu negocio necesita una presencia propia, comprensible y usable en móvil y escritorio.",
+      "contribution": "Puedo ayudarte a definir la audiencia, organizar mensajes y convertirlos en páginas, componentes y formularios. Mi experiencia combina frontend, WordPress y gestión de contenido.",
+      "decisions": [
+        "Acordar qué necesita saber el visitante y qué acción debe poder completar.",
+        "Elegir la plataforma según el contenido y quién actualizará el sitio.",
+        "Revisar navegación, formularios, accesibilidad básica, metadatos y presentación responsive."
+      ],
+      "results": "Sitio o landing con páginas acordadas, llamadas a la acción y guía de actualización.",
+      "limits": "El número de páginas, integraciones y criterios de aceptación se definen al iniciar. No se prometen posiciones en buscadores ni resultados de venta.",
+      "tags": [
+        "Frontend",
+        "WordPress",
+        "Contenido",
+        "SEO técnico"
+      ],
+      "evidence": [
+        {
+          "id": "experiencia-web",
+          "label": "Respaldo: plataforma de Federación y experiencia laboral en WordPress."
+        }
+      ]
+    },
+    {
+      "id": "mejora-mantenimiento",
+      "slug": "mejora-y-mantenimiento",
+      "kind": "service",
+      "title": "Mejora y mantenimiento web",
+      "summary": "Diagnóstico y corrección de problemas de funcionamiento, contenido y navegación en sitios existentes.",
+      "problem": "Los enlaces rotos, la información desactualizada o las diferencias entre dispositivos dificultan las tareas del visitante.",
+      "contribution": "Reproduzco los problemas, identifico sus causas y priorizo cambios según su impacto. Reviso tanto el código afectado como los mensajes y recorridos del sitio.",
+      "decisions": [
+        "Acotar componentes y datos antes de modificar.",
+        "Comprobar los recorridos afectados y las posibles regresiones.",
+        "Documentar lo corregido y los pendientes para facilitar el mantenimiento posterior."
+      ],
+      "results": "Diagnóstico priorizado, correcciones acordadas y registro de verificación.",
+      "limits": "La viabilidad y el mantenimiento recurrente dependen de la plataforma, los accesos y el alcance acordado.",
+      "tags": [
+        "QA",
+        "Mantenimiento",
+        "SEO técnico",
+        "Pruebas"
+      ],
+      "evidence": [
+        {
+          "id": "experiencia-calidad",
+          "label": "Respaldo: mantenimiento empresarial en AEM y controles de calidad en Federación."
+        }
+      ]
+    },
+    {
+      "id": "automatizacion-editorial",
+      "slug": "automatizacion-editorial",
+      "kind": "service",
+      "title": "Automatización de contenido y datos",
+      "summary": "Flujos para preparar archivos, transformar información y reducir pasos manuales antes de revisar o publicar contenido.",
+      "problem": "Copiar datos y repetir validaciones consume tiempo e introduce errores en tareas recurrentes.",
+      "contribution": "Analizo entradas, transformaciones y salidas para automatizar un proceso acotado. Trabajo con Python, XML, archivos por lotes y consumo de datos externos.",
+      "decisions": [
+        "Definir formatos, reglas de validación y contratos de datos antes de integrar.",
+        "Distinguir errores técnicos de datos incompletos y conservar resultados válidos ante fallos.",
+        "Incluir una revisión del resultado antes de usarlo o publicarlo."
+      ],
+      "results": "Un flujo documentado para la tarea acordada, con manejo de errores y una forma de comprobar sus salidas.",
+      "limits": "Cada integración requiere validar accesos y viabilidad. El ahorro se mide sobre el proceso del cliente; no se trasladan estimaciones de otros proyectos.",
+      "tags": [
+        "Automatización",
+        "Integración",
+        "Data Quality",
+        "Python"
+      ],
+      "evidence": [
+        {
+          "id": "experiencia-automatizacion",
+          "label": "Respaldo: ExcelBatch, CleanTreeFlow y sincronización de eventos en Federación."
+        }
+      ]
+    }
+  ]
+}

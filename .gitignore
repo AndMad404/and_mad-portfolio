@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+.react-router/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+connector/config.local.json
+*.sqlite*
+backups/
+wrangler.studio.generated.json

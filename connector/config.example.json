@@ -1,0 +1,1 @@
+{"endpoint":"https://panel.example.com","prometheusRoot":"REPLACE_LOCALLY","resources":{"hook-contract":"docs/contracts/hook-system.md","reader-guide":"core/README.md"}}

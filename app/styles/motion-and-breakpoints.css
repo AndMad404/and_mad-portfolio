@@ -1,0 +1,264 @@
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes content-appear {
+  from {
+    opacity: 0.65;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pixel-step {
+  0% {
+    clip-path: polygon(
+      0 0,
+      35% 0,
+      35% 35%,
+      100% 35%,
+      100% 100%,
+      65% 100%,
+      65% 65%,
+      0 65%
+    );
+  }
+  50% {
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 65% 35%, 65% 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(
+      0 0,
+      65% 0,
+      65% 35%,
+      100% 35%,
+      100% 100%,
+      35% 100%,
+      35% 65%,
+      0 65%
+    );
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Includes blocks visible below the hero on tall/4K viewports. The observer
+     skips their first report so hydration never restarts this entrance. */
+  [data-reveal],
+  .detail-block,
+  .evidence-gallery,
+  .detail-contact {
+    animation: page-enter 800ms cubic-bezier(0.22, 1, 0.36, 1) 300ms backwards;
+  }
+  .project-card:nth-child(3n + 2) {
+    animation-delay: 380ms;
+  }
+  .project-card:nth-child(3n + 3) {
+    animation-delay: 460ms;
+  }
+  /* Initial entry runs from the first styled paint, independently of hydration. */
+  .hero-copy > * {
+    animation: page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .hero-copy > .eyebrow {
+    animation-delay: 0ms;
+  }
+  .hero-copy > h1 {
+    animation-delay: 80ms;
+  }
+  .hero-copy > .lede {
+    animation-delay: 180ms;
+  }
+  .hero-copy > .hero-actions {
+    animation-delay: 260ms;
+  }
+  .hero-copy > .hero-footnote {
+    animation-delay: 340ms;
+  }
+  /* The process demo and each detail heading use the same first-paint entry. */
+  .editorial-demo > *,
+  .back-link,
+  .detail-heading > * {
+    animation: page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .editorial-demo > .demo-heading {
+    animation-delay: 120ms;
+  }
+  .editorial-demo > .stage-controls {
+    animation-delay: 200ms;
+  }
+  .editorial-demo > .stage-stack {
+    animation-delay: 280ms;
+  }
+  .editorial-demo > .stage-description {
+    animation-delay: 360ms;
+  }
+  .editorial-demo > .sample-note {
+    animation-delay: 420ms;
+  }
+  .detail-heading > .eyebrow {
+    animation-delay: 60ms;
+  }
+  .detail-heading > h1 {
+    animation-delay: 140ms;
+  }
+  .detail-heading > .lede {
+    animation-delay: 240ms;
+  }
+  .detail-heading > .tags {
+    animation-delay: 320ms;
+  }
+  .pixel-mark[data-entered="true"] {
+    animation: pixel-step 240ms steps(2, end) 1;
+  }
+  .brand:is(:hover, :focus-visible) .pixel-mark,
+  .section-heading:hover .pixel-mark {
+    animation: pixel-step 240ms steps(2, end) 1;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 220ms;
+    animation-timing-function: ease-out;
+  }
+  ::view-transition-old(root) {
+    animation: none;
+  }
+  ::view-transition-new(root) {
+    animation: content-appear 180ms ease both;
+  }
+  ::view-transition-group(site-header),
+  ::view-transition-old(site-header),
+  ::view-transition-new(site-header) {
+    animation: none;
+  }
+}
+/* Mobile is the base. These widths are CSS pixels, independent of screen DPR. */
+.public-site :where(main, section, article, header, nav, .hero-copy) {
+  min-width: 0;
+}
+.public-site footer > span {
+  order: 3;
+  flex-basis: 100%;
+}
+.public-site .detail.editorial-detail {
+  font-size: var(--text-body);
+}
+.public-site .editorial-detail .detail-body {
+  max-width: 70ch;
+}
+@media (min-width: 40rem) {
+  .stage-card {
+    margin-right: var(--space-half);
+  }
+  .stage-card.stage-1 {
+    margin-left: var(--space-half);
+  }
+  .stage-card.stage-2 {
+    margin-left: var(--space-quarter);
+    margin-right: var(--space-quarter);
+  }
+}
+@media (min-width: 48rem) {
+  .public-site .header .shell {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-half);
+    min-height: 5.25rem;
+    padding-block: var(--space-quarter);
+  }
+  .public-site .header nav {
+    width: auto;
+    gap: var(--space-half);
+  }
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .comparison-panels[data-view="both"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .public-site footer > span {
+    order: 0;
+    flex-basis: auto;
+  }
+}
+@media (min-width: 64rem) {
+  .editorial-hero {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    gap: var(--space-three-quarters);
+  }
+  .editorial-demo {
+    max-width: 56rem;
+  }
+  .section-heading {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: var(--space-1);
+  }
+  .section-heading > p {
+    max-width: 34ch;
+  }
+  .service-row {
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 0.85fr) 2rem;
+    gap: var(--space-half);
+  }
+  .public-site .service-row p {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .service-arrow {
+    grid-column: 4;
+  }
+  .profile-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-three-quarters);
+  }
+}
+@media (min-width: 120rem) {
+  .public-site .header .shell {
+    padding-block: var(--space-half);
+  }
+  .editorial-hero {
+    padding-block: var(--space-2) var(--section-space);
+  }
+  .public-site .detail.editorial-detail {
+    max-width: 100rem;
+  }
+  .public-site .editorial-detail .detail-heading {
+    max-width: 70ch;
+  }
+}
+@media (min-width: 160rem) {
+  .project-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .editorial-demo {
+    max-width: 64rem;
+  }
+  .stage-stack {
+    gap: var(--space-half);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-site *,
+  .public-site *::before,
+  .public-site *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .public-site .stage-card[data-active="true"],
+  .public-site .service-row:hover .service-arrow {
+    transform: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+

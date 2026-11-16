@@ -1,0 +1,37 @@
+name: Deploy private editorial platform
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: portfolio-studio-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      PANEL_ORIGIN: ${{ vars.PANEL_ORIGIN }}
+      ACCESS_TEAM: ${{ vars.ACCESS_TEAM }}
+      ACCESS_AUDIENCE: ${{ vars.ACCESS_AUDIENCE }}
+      OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+      CLOUDFLARE_D1_ID: ${{ vars.CLOUDFLARE_D1_ID }}
+      SOURCE_REVISION: ${{ github.sha }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.STUDIO_CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:studio
+      - run: npx tsx scripts/configure-studio.ts
+      - name: Apply reviewed additive migrations
+        run: npx wrangler d1 migrations apply editorial --remote --config wrangler.studio.generated.json
+      - name: Deploy private Worker
+        run: npx wrangler deploy --config wrangler.studio.generated.json

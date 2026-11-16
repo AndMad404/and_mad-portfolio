@@ -1,0 +1,34 @@
+/* One profile block: semantic groups share the same node separators as services. */
+.public-site .services-section { display: grid; gap: var(--content-space); }
+.public-site .services-section > .section-heading { margin: 0; }
+.public-site .service-row { padding: 0; border: 0; }
+.service-disclosure + .service-disclosure::before,
+.profile-context::before, .profile-process::before {
+  content: "";
+  display: block;
+  width: var(--grid-unit);
+  height: var(--space-eighth);
+  background:
+    radial-gradient(circle at center, var(--color-steel) 2px, transparent 2px) left center / var(--space-eighth) 100% no-repeat,
+    radial-gradient(circle at center, var(--color-steel) 2px, transparent 2px) right center / var(--space-eighth) 100% no-repeat,
+    linear-gradient(var(--color-steel), var(--color-steel)) center / 100% 1px no-repeat;
+}
+.service-disclosure { display: grid; gap: var(--content-space); }
+.public-site .profile-method, .profile-method-intro, .profile-context,
+.profile-context > article, .profile-process, .profile-process > header, .delivery-steps,
+.delivery-steps > li { display: grid; gap: var(--content-space); align-content: start; }
+.public-site .profile-method :is(h2, h3, h4, p), .public-site .delivery-steps { margin: 0; }
+.profile-method-intro > p:last-child { max-width: 65ch; }
+.public-site .profile-method h3 { font-size: clamp(1.25rem, 1rem + .7vw, 2rem); line-height: 1.2; }
+.public-site .profile-method h4 { font-size: var(--text-body); line-height: 1.3; }
+.delivery-steps { list-style: none; padding: 0; counter-reset: delivery; }
+.delivery-steps > li { counter-increment: delivery; gap: var(--space-half); }
+.delivery-steps > li::before { content: counter(delivery, decimal-leading-zero); color: var(--blue); font-family: monospace; }
+@media (min-width: 48rem) {
+  .profile-context { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-context::before { grid-column: 1 / -1; }
+  .delivery-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 80rem) {
+  .delivery-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

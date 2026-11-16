@@ -1,0 +1,43 @@
+/* Horizontal menu nodes share one design at every viewport. */
+.public-site .header nav a {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-eighth);
+  padding-block: var(--space-eighth);
+}
+.public-site .header nav a[aria-current] { text-decoration: none; }
+.nav-label {
+  position: relative;
+  padding-bottom: var(--space-quarter);
+}
+.nav-node {
+  position: absolute;
+  left: 2.5%;
+  bottom: 0;
+  width: 95%;
+  height: auto;
+  color: var(--color-blue-gray);
+}
+.nav-node path { stroke: currentColor; stroke-width: 1.5; }
+.nav-node circle { fill: currentColor; }
+.public-site .header nav a[aria-current] .nav-node {
+  color: var(--color-steel);
+  filter: drop-shadow(0 0 3px var(--color-sky));
+}
+.public-site .header nav a[aria-current] .nav-node circle { fill: var(--color-sky); }
+
+/* Menu travel duration is doubled from 1.233333s to halve its cycle rate. */
+.nav-node .travelling-node { display: none; }
+.public-site .header nav a[aria-current] .nav-node .travelling-node,
+.back-to-top .travelling-node {
+  fill: var(--color-sky);
+  filter: drop-shadow(0 0 2px var(--color-sky));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .public-site .header nav a[aria-current] .nav-node .travelling-node { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .travelling-node { display: none !important; }
+}
+

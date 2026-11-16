@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Prometheus y portafolio editorial",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1120,
+      740
+    ]
+  },
+  "components": [
+    {
+      "id": "reader",
+      "type": "backend",
+      "label": "Prometheus Reader",
+      "sublabel": "Existente · lectura acotada",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "bridge",
+      "type": "backend",
+      "label": "Conector local",
+      "sublabel": "Propuesto · Node.js",
+      "pos": [
+        820,
+        40
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Backend privado",
+      "sublabel": "Propuesto · Worker + Access",
+      "pos": [
+        820,
+        230
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "imports",
+      "type": "external",
+      "label": "Paquete editorial",
+      "sublabel": "Propuesto · material revisado",
+      "pos": [
+        40,
+        230
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "panel",
+      "type": "frontend",
+      "label": "Panel editorial",
+      "sublabel": "Propuesto · React + TypeScript",
+      "pos": [
+        430,
+        230
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "D1 editorial",
+      "sublabel": "Propuesto · revisiones y consultas",
+      "pos": [
+        820,
+        420
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "release",
+      "type": "messagebus",
+      "label": "Versión aprobada",
+      "sublabel": "Propuesto · contenido congelado",
+      "pos": [
+        430,
+        420
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "actions",
+      "type": "backend",
+      "label": "GitHub Actions",
+      "sublabel": "Propuesto · verifica y despliega",
+      "pos": [
+        430,
+        610
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "site",
+      "type": "cloud",
+      "label": "Portafolio público",
+      "sublabel": "Propuesto · HTML independiente",
+      "pos": [
+        40,
+        610
+      ],
+      "size": [
+        230,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "reader_bridge",
+      "from": "reader",
+      "to": "bridge",
+      "label": "lectura local",
+      "variant": "default"
+    },
+    {
+      "id": "bridge_api",
+      "from": "bridge",
+      "to": "api",
+      "label": "HTTPS saliente",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "id": "imports_panel",
+      "from": "imports",
+      "to": "panel",
+      "label": "importación",
+      "variant": "default"
+    },
+    {
+      "id": "panel_api",
+      "from": "panel",
+      "to": "api",
+      "label": "HTTPS privado",
+      "variant": "default"
+    },
+    {
+      "id": "api_db",
+      "from": "api",
+      "to": "db",
+      "label": "SQL",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "id": "panel_release",
+      "from": "panel",
+      "to": "release",
+      "label": "aprobación",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "id": "release_actions",
+      "from": "release",
+      "to": "actions",
+      "label": "publicación",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "id": "actions_site",
+      "from": "actions",
+      "to": "site",
+      "label": "despliegue",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Límite privado",
+      "items": [
+        "La consulta no publica documentos.",
+        "El conector solo permite recursos autorizados."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Disponibilidad",
+      "items": [
+        "El sitio sigue online sin Prometheus.",
+        "El panel informa la conexión local."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+name: Publish approved release
+run-name: release:${{ inputs.release_id }}:${{ inputs.attempt_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        required: true
+        type: string
+      attempt_id:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: portfolio-public-production
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      RELEASE_ID: ${{ inputs.release_id }}
+      ATTEMPT_ID: ${{ inputs.attempt_id }}
+      PANEL_ORIGIN: ${{ vars.PANEL_ORIGIN }}
+      SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+      INDEXABLE: 'true'
+      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.DEPLOY_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DEPLOY_ACCESS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Download only the approved snapshot
+        run: npx tsx scripts/release-client.ts download
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Deploy public Worker atomically
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy --config wrangler.site.jsonc
+      - name: Confirm publication
+        if: success()
+        run: npx tsx scripts/release-client.ts published
+      - name: Record failure before successful deployment
+        if: ${{ failure() && steps.deploy.outcome != 'success' }}
+        run: npx tsx scripts/release-client.ts failed
+      - name: Preserve release record
+        if: ${{ steps.deploy.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-${{ inputs.release_id }}
+          path: build/site/client/release.json
+

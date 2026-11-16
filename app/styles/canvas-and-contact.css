@@ -1,0 +1,139 @@
+/* Blueprint canvas behind the paper surfaces and existing folder cards. */
+.public-site {
+  position: relative;
+  isolation: isolate;
+  background: var(--surface-dark);
+  --page-side-margin: var(--space-half);
+}
+.public-site > main.shell,
+.public-site > footer.shell {
+  position: relative;
+  width: calc(100% - var(--page-side-margin) - var(--page-side-margin));
+  max-width: none;
+  margin: var(--section-space) auto;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  box-shadow: 0 1rem 4rem rgb(0 0 0 / 15%);
+}
+.public-site > main.shell { padding-inline: var(--space-half); }
+.public-site > footer.shell { padding: var(--space-half); }
+.public-site .editorial-hero { grid-template-columns: minmax(0, 1fr); }
+.public-site .hero-copy { max-width: 70rem; }
+@media (min-width: 48rem) {
+  .public-site { --page-side-margin: var(--space-1); }
+}
+@media (min-width: 80rem) {
+  .public-site { --page-side-margin: var(--space-2); }
+}
+
+
+/* Real cutouts: the viewport blueprint is visible through the paper, in one coordinate space. */
+.blueprint-paper-plane {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  fill: var(--color-paper);
+}
+.public-site > main.shell,
+.public-site > footer.shell { z-index: 1; }
+.public-site > main.shell[data-blueprint-masked="true"],
+.public-site main[data-blueprint-masked="true"] .project-card[data-parallax="folder"],
+.public-site .cover-system[data-blueprint-window="true"] { background: transparent; }
+.cover-system[data-blueprint-window="true"] > .blueprint-background { display: none; }
+
+
+/* Scroll now transitions the content; the blueprint stays in viewport coordinates. */
+.project-card[data-parallax="folder"] { transform: none !important; }
+
+@media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  html:has(.public-site) {
+    scroll-snap-type: y proximity;
+    scroll-padding-block: calc(var(--header-height) + var(--space-quarter)) var(--space-half);
+  }
+  .editorial-hero, .services-section, .work-section,
+  .project-grid > .project-card:not(:first-child), .method-section, #perfil, #contacto {
+    scroll-snap-align: start;
+  }
+  html:has(.entry-modal[open]) { scroll-snap-type: none; }
+}
+
+/* Keep each illustration inside its window on narrow screens. */
+.public-site .cover-drawing { grid-template-columns: minmax(0, 1fr); }
+.public-site .cover-drawing > * { min-width: 0; max-width: 100%; }
+@media (max-width: 47.99rem) {
+  .public-site > main.shell { padding-inline: var(--space-quarter); }
+  .public-site .project-grid .project-card { padding: var(--content-space); }
+  .public-site .project-visual,
+  .public-site .project-visual .case-cover { width: 100%; max-width: 100%; min-width: 0; }
+  .public-site .project-visual .case-cover {
+    min-height: 14rem;
+    aspect-ratio: 1.25;
+  }
+  .public-site .project-visual .cover-drawing {
+    position: absolute;
+    inset: 0;
+    padding: var(--space-half) var(--space-quarter) var(--space-1);
+  }
+}
+.contact-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-half); }
+.public-site > footer.contact-section {
+  display: block;
+  padding: var(--section-space);
+  background: var(--color-sky);
+}
+.footer-signature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-half);
+  margin-top: var(--space-three-quarters);
+  padding-top: var(--space-half);
+  border-top: 1px solid var(--color-steel);
+  font-size: var(--text-small);
+}
+.public-site .contact-links .button-secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.public-site .back-to-top { display: none; }
+@media (pointer: coarse), (max-width: 47.99rem) {
+  .public-site .back-to-top {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    z-index: 30;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: 52px;
+    height: 52px;
+    padding: var(--space-eighth);
+    border: 1px solid var(--color-steel);
+    border-radius: 50%;
+    background: var(--surface-dark);
+    color: var(--color-sky);
+    box-shadow: 0 0 18px #87ceeb33;
+    touch-action: manipulation;
+  }
+  .back-to-top svg { width: 100%; height: 100%; filter: drop-shadow(0 0 3px #87ceeb88); }
+  .back-to-top path { stroke: var(--color-steel); stroke-width: 1.5; }
+  .back-to-top circle { fill: currentColor; }
+  .public-site .back-to-top:focus-visible { outline: 3px solid var(--color-sky); outline-offset: 3px; }
+  .public-site > footer.shell { margin-bottom: var(--space-2); }
+}
+@keyframes back-to-top-intro {
+  0%, 100% { translate: 0 0; }
+  35% { translate: 0 -7px; }
+  65% { translate: 0 2px; }
+  82% { translate: 0 -2px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .public-site .back-to-top { animation: back-to-top-intro 900ms ease-out 1; }
+}
+
+/* One controller owns settling after wheel, touch and scrollbar gestures. */
+html[data-block-navigation="on"]:has(.public-site) { scroll-snap-type: none; }
+
