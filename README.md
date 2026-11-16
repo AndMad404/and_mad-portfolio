@@ -64,3 +64,4 @@ El Worker privado verifica el JWT de Access y el propietario en cada petición h
 No hay despliegue remoto confirmado: falta autenticar Cloudflare, completar dominios, Access, D1 y secretos. El repositorio objetivo ya fue identificado. La revisión visual real sigue pendiente; el build y las pruebas no la sustituyen.
 
 "# and_mad-portfolio" 
+"# and_mad-portfolio" 
