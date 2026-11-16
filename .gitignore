@@ -1,9 +1,18 @@
+# Dependencies and generated output
 node_modules/
 build/
 dist/
 .react-router/
 .wrangler/
+*.tsbuildinfo
+*.log
+coverage/
+.tmp/
+temp/
+
+# Local settings, secrets and database backups
 .dev.vars
+.dev.vars.*
 .env
 .env.*
 !.env.example
@@ -11,3 +20,23 @@ connector/config.local.json
 *.sqlite*
 backups/
 wrangler.studio.generated.json
+
+# Prometheus / local agent infrastructure (not part of the published product)
+.codex/
+.claude/
+.cursor/
+.opencode/
+.aider*
+AGENTS.md
+CLAUDE.md
+context-index.md
+context-library/
+dependency-index.json
+
+# Internal planning, architecture and research
+ROADMAP.md
+docs/
+
+# Local Prometheus connector: requires separate migration of its tests
+# before being removed from Git tracking.
+connector/
