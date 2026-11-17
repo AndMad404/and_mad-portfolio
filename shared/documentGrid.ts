@@ -42,7 +42,11 @@ export function useDocumentGrid(root: RefObject<HTMLElement | null>) {
         const share = element.matches(".hero-copy") ? 7 / 12 : element.matches(".service-row") ? .6 : undefined;
         const available = element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         const tracks = latticeTracks(before.lattice, available, count, share);
-        element.style.setProperty("--grid-tracks", tracks.map(size => `${size}px`).join(" "));
+        // A single column must fit the content box, including fractional insets.
+        // Rounding it to a lattice cell can push nodes and text outside the panel.
+        element.style.setProperty("--grid-tracks", tracks.length === 1
+          ? "minmax(0, 100%)"
+          : tracks.map(size => `${size}px`).join(" "));
       }
       // Descendants first: tabs/windows → cards → sections. Reset before measuring
       // so replacing long content with short content can shrink the document too.

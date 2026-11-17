@@ -75,6 +75,20 @@
   .public-site .work-type-body,
   .public-site .work-type-content { gap: calc(var(--grid-unit) / 2); }
 }
+/* Main panels start with 20px above and below their content on phones. */
+.public-site[data-document-grid] > main.shell > :is(.section, .editorial-hero),
+.public-site[data-document-grid] > footer.contact-section {
+  padding-block: var(--space-half);
+}
+@media (min-width: 48rem) {
+  .public-site[data-document-grid] > main.shell > :is(.section, .editorial-hero),
+  .public-site[data-document-grid] > footer.contact-section {
+    padding-block: var(--grid-unit);
+  }
+  .public-site[data-document-grid] > main.shell > .work-section {
+    padding-block: var(--space-half);
+  }
+}
 /* Text groups use their content height; visual windows retain lattice sizing. */
 .public-site[data-document-grid] :is(.section-heading, .service-row, .profile-method-intro, .profile-context, .profile-context > article, .profile-process, .delivery-steps > li) {
   min-height: 0;
