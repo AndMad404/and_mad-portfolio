@@ -22,7 +22,7 @@ export function EntryView({
         </p>
         <Title className="entry-title" tabIndex={-1}>{entry.title}</Title>
         <p className="lede">{entry.summary}</p>
-        {entry.tags.length > 0 && <div className="tags">
+        {entry.kind === "case" && entry.tags.length > 0 && <div className="tags">
           {entry.tags.map((t) => (
             <span className="tag" key={t}>
               {t}
@@ -34,7 +34,23 @@ export function EntryView({
         inline ? <div className="entry-parallax-window" aria-hidden="true" /> :
           <CaseCover entry={entry} transition={transition} />
       )}
-      <div className="detail-body">
+      {entry.kind === "service" ? <div className="detail-body">
+        {entry.decisions.length > 0 && <section className="detail-block">
+          <span className="detail-number" aria-hidden="true">01</span>
+          <div>
+            <SectionTitle>Qué puedes contratar</SectionTitle>
+            <ul>{entry.decisions.map((item, index) => <li key={index}>{item}</li>)}</ul>
+          </div>
+        </section>}
+        <section className="detail-block">
+          <span className="detail-number" aria-hidden="true">{entry.decisions.length > 0 ? "02" : "01"}</span>
+          <div>
+            <SectionTitle>Experiencia que aporto</SectionTitle>
+            <p>{entry.contribution}</p>
+          </div>
+        </section>
+        <p className="detail-limits">{entry.limits}</p>
+      </div> : <div className="detail-body">
         <section className="detail-block">
           <span className="detail-number" aria-hidden="true">
             01
@@ -50,9 +66,7 @@ export function EntryView({
           </span>
           <div>
             <SectionTitle>
-              {entry.kind === "service"
-                ? "Cómo puedo ayudarte"
-                : "Mi participación"}
+              Mi participación
             </SectionTitle>
             <p>{entry.contribution}</p>
           </div>
@@ -62,7 +76,7 @@ export function EntryView({
             03
           </span>
           <div>
-            <SectionTitle>{entry.kind === "service" ? "Cómo lo abordo" : "Decisiones"}</SectionTitle>
+            <SectionTitle>Decisiones</SectionTitle>
             <ul>
               {entry.decisions.map((d, i) => (
                 <li key={i}>{d}</li>
@@ -88,8 +102,8 @@ export function EntryView({
             <p>{entry.limits}</p>
           </div>
         </section>
-      </div>
-      <EvidenceGallery evidence={entry.evidence} headingLevel={inline ? 3 : 2} />
+      </div>}
+      {entry.kind === "case" && <EvidenceGallery evidence={entry.evidence} headingLevel={inline ? 3 : 2} />}
       <div className="detail-contact">
         <a className="button" href="https://www.linkedin.com/in/andres-mad/" target="_blank" rel="noopener noreferrer">
           {entry.kind === "service" ? "Conversemos sobre tu proyecto ↗" : "Conversemos sobre este trabajo ↗"}

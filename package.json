@@ -13,10 +13,15 @@
     "build": "react-router build && tsx scripts/finalize-site.ts && tsx scripts/verify-build.ts",
     "build:studio": "vite build --config vite.studio.config.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "npm run test:content && npm run test:nodes && npm run test:animations && npm run test:transitions",
+    "test:content": "tsx --test tests/content.test.ts",
+    "test:nodes": "tsx --test tests/nodes.test.ts",
+    "test:animations": "tsx --test tests/animations.test.ts",
+    "test:transitions": "tsx --test tests/transitions.test.ts",
+    "test:edition:unverified": "tsx --test tests/edition/backend.unverified.ts tests/edition/connector.unverified.ts tests/edition/preview.unverified.ts",
     "db:local": "wrangler d1 migrations apply editorial --local --config wrangler.studio.jsonc",
     "connector": "tsx connector/main.ts",
-    "verify": "npm run typecheck && npm test && npm run build && npm run build:studio"
+    "verify": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",

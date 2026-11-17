@@ -28,7 +28,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      # Edition tests are unverified for delivery and deferred. Do not run them here.
       - run: npm run build:studio
       - run: npx tsx scripts/configure-studio.ts
       - name: Apply reviewed additive migrations

@@ -13,8 +13,9 @@ import {
 } from "react-router";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ENERGY_CELL } from "../shared/BlueprintEnergy";
+import { useDocumentGrid } from "../shared/documentGrid";
 import { useReducedMotion } from "../shared/motion";
-import { usePageMotion, useBlockNavigation, visibleNavigationSection } from "./components/PageMotion";
+import { usePageMotion, useBlockNavigation, visibleNavigationSection, activateSectionEnergy } from "./components/PageMotion";
 import { BlueprintBackground } from "./components/BlueprintBackground";
 import { BlueprintWindows } from "./components/BlueprintWindows";
 import "../shared/tokens.css";
@@ -49,6 +50,7 @@ export default function Root() {
   const reduced = useReducedMotion();
   const header = useRef<HTMLElement>(null);
   const main = useRef<HTMLElement>(null);
+  useDocumentGrid(main);
   const [visibleSection, setVisibleSection] = useState("");
   useEffect(() => {
     if (location.pathname !== "/" || !main.current) return;
@@ -85,6 +87,11 @@ export default function Root() {
   }, [location.pathname]);
   const modalSection = /^#servicio-/.test(renderedHash) ? "servicios"
     : /^#caso-/.test(renderedHash) ? "proyectos" : null;
+  const activeMenuSection = modalSection ?? visibleSection;
+  useEffect(() => {
+    if (main.current) activateSectionEnergy(main.current.parentElement ?? main.current,
+      location.pathname === "/" ? activeMenuSection : "", reduced);
+  }, [activeMenuSection, location.pathname, reduced]);
   usePageMotion(main, location.pathname);
   useBlockNavigation(main, location.pathname);
   const first = useRef(true);
@@ -174,8 +181,13 @@ export default function Root() {
                 key={section}
                 to={`/#${section}`}
                 viewTransition={!reduced}
+                onClick={event => {
+                  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                  if (location.pathname === "/" && activeMenuSection === section && main.current)
+                    activateSectionEnergy(main.current.parentElement ?? main.current, section, reduced, true);
+                }}
                 aria-current={
-                  (location.pathname === "/" ? (modalSection ?? visibleSection) === section :
+                  (location.pathname === "/" ? activeMenuSection === section :
                   location.pathname.startsWith(`/${section}/`) ||
                   renderedHash === `#${section}` ||
                   (section === "proyectos" && /^#(?:caso|resumen)-/.test(renderedHash) && !renderedHash.startsWith("#resumen-servicio-")) ||

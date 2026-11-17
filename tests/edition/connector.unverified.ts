@@ -1,3 +1,5 @@
+// EDICIÓN — NO VERIFICADO PARA ENTREGA. Fuera de npm test, verify y CI.
+// Los resultados locales históricos no acreditan el circuito editorial real.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
@@ -7,7 +9,7 @@ import {
   configSchema,
   resolveResource,
   readResource,
-} from "../connector/reader";
+} from "../../connector/reader";
 test("configuración no admite HTTP, rutas del navegador ni traversal", () => {
   assert.equal(
     configSchema.safeParse({

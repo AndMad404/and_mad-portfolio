@@ -1,6 +1,76 @@
 import { useEffect, type RefObject } from "react";
 import { useReducedMotion } from "../../shared/motion";
 
+/** Project standard for title → connector → description.
+ * Mark the wrapper data-energy-sequence, its title data-energy-title, the
+ * connector data-energy-node and each description text data-energy-description.
+ * CSS owns one shared timeline; completion means the description finished.
+ * Do not combine the wrapper with data-reveal (it has a separate entrance).
+ */
+export function observeEnergySequences(root: HTMLElement) {
+  const rows = root.matches("[data-energy-sequence]") ? [root]
+    : [...root.querySelectorAll<HTMLElement>("[data-energy-sequence]")];
+  if (typeof IntersectionObserver === "undefined") return () => {};
+  const headerHeight = Math.ceil(root.ownerDocument.querySelector(".public-site > .header")?.getBoundingClientRect().height ?? 0);
+  const observer = new IntersectionObserver(entries => {
+    for (const { target, isIntersecting, intersectionRatio } of entries) {
+      if (!isIntersecting || intersectionRatio < .6) continue;
+      const row = target.closest<HTMLElement>("[data-energy-sequence]");
+      if (!row) continue;
+      if (!row.dataset.energyPlayed) row.classList.add("is-energized");
+      observer.unobserve(target);
+    }
+  }, { threshold: .6, rootMargin: `-${headerHeight}px 0px -10% 0px` });
+  const complete = (event: AnimationEvent) => {
+    if (event.animationName !== "energy-text-glow" || !(event.target instanceof Element) ||
+      !event.target.matches("[data-energy-description]")) return;
+    const row = event.target.closest<HTMLElement>("[data-energy-sequence]");
+    if (row) row.dataset.energyPlayed = "true";
+  };
+  for (const row of rows) {
+    const node = row.querySelector("[data-energy-node]");
+    if (node) observer.observe(node);
+    row.addEventListener("animationend", complete);
+  }
+  return () => {
+    observer.disconnect();
+    for (const row of rows) {
+      row.removeEventListener("animationend", complete);
+      row.classList.remove("is-energized");
+    }
+  };
+}
+
+export function useEnergySequence(root: RefObject<HTMLElement | null>) {
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced || !root.current) return;
+    return observeEnergySequences(root.current);
+  }, [root, reduced]);
+}
+
+/** A newly active menu section explicitly replays its sequences once.
+ * Keeping the active id prevents scroll/render notifications from looping it.
+ */
+export function activateSectionEnergy(root: HTMLElement, sectionId: string, reduced: boolean, force = false) {
+  if (!force && root.dataset.energyActiveSection === sectionId) return;
+  root.dataset.energyActiveSection = sectionId;
+  if (reduced || !sectionId) return;
+  const section = [...root.querySelectorAll<HTMLElement>("section[id], footer[id]")]
+    .find(element => element.id === sectionId);
+  if (!section) return;
+  const rows = [...section.querySelectorAll<HTMLElement>("[data-energy-sequence]")];
+  section.classList.remove("is-section-energized");
+  for (const row of rows) {
+    row.classList.remove("is-energized");
+    delete row.dataset.energyPlayed;
+  }
+  // Commit the reset once for the section, then restart the shared CSS timeline.
+  void root.offsetWidth;
+  section.classList.add("is-section-energized");
+  rows.forEach(row => row.classList.add("is-energized"));
+}
+
 // First-screen content (hero, process demo, detail heading) enters through CSS
 // at first paint. This hook reveals only what reaches the viewport afterwards.
 const targets = [
@@ -169,7 +239,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
     let frame: number | null = null;
     let settle: ReturnType<typeof setTimeout> | undefined;
     let unlock: ReturnType<typeof setTimeout> | undefined;
-    let busy = false, dragging = false, accumulated = 0, lastWheel = 0;
+    let busy = false, dragging = false, anchorNavigation = false, accumulated = 0, lastWheel = 0;
     let mouse: { x: number; y: number } | null = null;
     let suppressClick = false;
     const excluded = (target: EventTarget | null) => !!document.querySelector("dialog[open]") ||
@@ -213,6 +283,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
     }
     function wheel(event: WheelEvent) {
       if (excluded(event.target) || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return;
+      anchorNavigation = false;
       event.preventDefault();
       if (busy) return;
       const now = performance.now();
@@ -224,21 +295,23 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
     }
     function key(event: KeyboardEvent) {
       if (excluded(event.target) || event.altKey || event.ctrlKey || event.metaKey || !["PageDown", "PageUp"].includes(event.key)) return;
+      anchorNavigation = false;
       event.preventDefault();
       if (!busy) advance(event.key === "PageDown" ? 1 : -1);
     }
     function snap() {
-      if (busy || dragging || excluded(null)) return;
+      if (busy || dragging || anchorNavigation || excluded(null)) return;
       const values = stops();
       const nearest = values.reduce((best, at) => Math.abs(at - window.scrollY) < Math.abs(best - window.scrollY) ? at : best, values[0] ?? 0);
       if (Math.abs(nearest - window.scrollY) > 2) go(nearest);
     }
     function scroll() {
-      if (busy) return;
+      if (busy || anchorNavigation) return;
       clearTimeout(settle); settle = setTimeout(snap, 180);
     }
     function down(event: PointerEvent) {
       if (excluded(event.target)) return;
+      anchorNavigation = false;
       cancel(); dragging = true;
       mouse = event.pointerType === "mouse" && event.button === 0 && event.target instanceof Element &&
         !event.target.closest("a, button, .project-visual") && event.clientX < document.documentElement.clientWidth
@@ -253,7 +326,16 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       advance(Math.sign(dy));
     }
     function click(event: MouseEvent) {
-      if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; }
+      if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; return; }
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!link) return;
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin === window.location.origin && destination.pathname === window.location.pathname && destination.hash) {
+        cancel();
+        // Let native/router anchor navigation finish without snapping to a different block.
+        anchorNavigation = true;
+      }
     }
     function up() { mouse = null; dragging = false; scroll(); }
     window.addEventListener("wheel", wheel, { passive: false });

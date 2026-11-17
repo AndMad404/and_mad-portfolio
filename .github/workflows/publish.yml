@@ -43,7 +43,8 @@ jobs:
       - name: Download only the approved snapshot
         run: npx tsx scripts/release-client.ts download
       - run: npm run typecheck
-      - run: npm test
+      - name: Test portfolio (edition tests deferred)
+        run: npm test
       - run: npm run build
       - name: Deploy public Worker atomically
         id: deploy

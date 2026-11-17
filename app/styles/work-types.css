@@ -1,4 +1,32 @@
 /* Work types reserve a clean window onto the single viewport parallax. */
+.public-site .work-section > .section-heading {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-half);
+}
+.public-site .work-section > .section-heading > p { max-width: 65ch; }
+.work-heading-node { order: 0; }
+@media (max-width: 63.99rem), (max-width: 79.99rem) and (orientation: portrait) {
+  .public-site > main.shell > .work-section { padding-bottom: 0; }
+}
+@media (min-width: 64rem) and (orientation: landscape), (min-width: 80rem) {
+  .public-site .work-section > .section-heading {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding: 0;
+    margin-bottom: 0;
+  }
+  .public-site .work-section > .section-heading > p { max-width: 34ch; }
+  .work-heading > div { min-width: 0; }
+  .work-heading-node {
+    order: 0;
+    align-self: center;
+    width: auto;
+    flex: 1 0 calc(var(--grid-unit) * 2);
+  }
+  .public-site .work-heading > p { flex: 0 1 34ch; }
+}
 .public-site .project-grid:has(> .work-type) { padding: 0; gap: var(--content-space); }
 .public-site .project-grid > .work-type {
   display: block;
@@ -10,10 +38,15 @@
 }
 .project-grid > .work-type::before { display: none; }
 .public-site .project-card .work-type-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  text-wrap: balance;
   width: fit-content;
-  max-width: 100%;
+  max-width: min(24ch, calc(100% - var(--space-half)));
   margin: 0;
-  padding: var(--space-quarter) var(--content-space);
+  padding: var(--space-quarter);
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: .75rem .75rem 0 0;
@@ -24,24 +57,35 @@
 }
 .work-type-body {
   display: grid;
+  align-content: start;
   gap: var(--content-space);
-  padding: var(--content-space);
+  padding: var(--space-quarter);
   /* Inset ring instead of a border: a border would push the content box 1px off the node lattice. */
   box-shadow: inset 0 0 0 1px var(--line);
   border-radius: 0 .75rem .75rem .75rem;
 }
 .work-type-window {
-  min-height: 12rem;
+  width: 100%;
+  min-width: 0;
   aspect-ratio: 1.5;
   border-radius: .75rem;
   background: var(--surface-dark);
 }
 .work-type-window[data-blueprint-window="true"] { background: transparent; }
 .work-type-content { display: grid; gap: var(--content-space); align-content: start; }
-.public-site .work-type-content > * { margin: 0; }
+.public-site .project-card .work-type-content > * { margin: 0; }
 .work-experiences { padding: 0; list-style: none; display: grid; gap: var(--content-space); }
 .work-experiences a { display: inline-block; min-height: 2.75rem; padding-block: var(--space-quarter); color: var(--blue); }
-@media (min-width: 64rem) {
+@media (min-width: 48rem) {
+  .work-type-body { padding: var(--space-half); }
+  .public-site .project-card .work-type-title {
+    justify-content: center;
+    text-align: center;
+    max-width: 100%;
+    padding-inline: var(--content-space);
+  }
+}
+@media (min-width: 64rem) and (orientation: landscape) {
   .work-type-body { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
   .work-type-window { grid-column: 2; grid-row: 1; }
   .work-type-content { grid-column: 1; grid-row: 1; }

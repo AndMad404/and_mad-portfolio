@@ -1,6 +1,9 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "./motion";
-import { ENERGY_CELL, advanceEnergy, createEnergySystem, energyEase, nodePower, linePower, energyNodeAt, stimulateEnergyNode, releaseEnergyPointer, pointerPower } from "./BlueprintEnergy";
+import { canvasPointAt, nodeAt } from "./lattice";
+import { pointOf } from "./lattice";
+import { createLattice } from "./lattice";
+import { ENERGY_CELL, advanceEnergy, createEnergySystem, energyEase, nodePower, linePower, energyNodeAt, stimulateEnergyNode, releaseEnergyPointer, pointerPower, pointerNeighbourhood, DOCUMENT_BOOT, documentReveal, documentActivity, createDocumentFlows, advanceDocumentFlows, type DocumentFlow } from "./BlueprintEnergy";
 
 const CELL = ENERGY_CELL;
 const NODE_DURATION = 350;
@@ -87,14 +90,249 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     return () => document.removeEventListener("visibilitychange", update);
   }, [variant]);
   useEffect(() => {
+    const element = plane.current, surface = canvas.current;
+    if (variant !== "page" || !element?.closest(".public-site") || !surface) return;
+    const context = surface.getContext("2d");
+    if (!context) return;
+    let grid: { lattice: ReturnType<typeof createLattice>; width: number; height: number } | null = null;
+    let frame: number | null = null;
+    const host = element.parentElement!;
+    const query = matchMedia("(prefers-reduced-motion: reduce)");
+    const base = document.createElement("canvas");
+    const baseContext = base.getContext("2d")!;
+    let dirty = true, disposed = false, ready = false, bootFinished = false;
+    let latest: { x: number; y: number } | null = null;
+    let pulse: { key: string; start: number; released: number; graph: ReturnType<typeof pointerNeighbourhood> } | null = null;
+    let inputFrame: number | null = null, gateFrame: number | null = null;
+    let sprite: HTMLCanvasElement | null = null;
+    let clock = 0, previous = 0;
+    let flows: DocumentFlow[] = [], flowBand = "";
+    let activity: ReturnType<typeof documentActivity> | null = null;
+    const trails = new Map<string, { from: { col: number; row: number }; to: { col: number; row: number }; hit: number; progress: number }>();
+    function ensureSprite() {
+      if (sprite) return sprite;
+      sprite = document.createElement("canvas"); sprite.width = sprite.height = 64;
+      const brush = sprite.getContext("2d")!, glow = brush.createRadialGradient(32, 32, 0, 32, 32, 32);
+      glow.addColorStop(0, "#eafaff"); glow.addColorStop(.3, "#87ceeb"); glow.addColorStop(1, "rgba(70,130,180,0)");
+      brush.fillStyle = glow; brush.fillRect(0, 0, 64, 64);
+      return sprite;
+    }
+    function light(x: number, y: number, alpha: number, radius = 10) {
+      context!.globalAlpha = alpha;
+      context!.drawImage(ensureSprite(), x - radius, y - radius, radius * 2, radius * 2);
+    }
+    host.dataset.interaction = "waiting";
+    host.dataset.layout = "viewport";
+    function paint(now: number) {
+      frame = null;
+      if (!grid) return;
+      const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
+      // Layout can collapse between resize and this frame. Wait for resize to resume.
+      if (width <= 0 || height <= 0) { previous = 0; dirty = true; return; }
+      const ratio = window.devicePixelRatio || 1;
+      const pixelWidth = Math.max(1, Math.round(width * ratio)), pixelHeight = Math.max(1, Math.round(height * ratio));
+      const moving = !query.matches && !pausedRef.current && document.visibilityState !== "hidden";
+      if (moving) clock += previous ? Math.max(0, Math.min(64, now - previous)) : 0;
+      previous = moving ? now : 0;
+      const bootTime = query.matches ? DOCUMENT_BOOT.pointerStart : clock;
+      if (!bootFinished) { dirty = true; bootFinished = bootTime >= DOCUMENT_BOOT.linesEnd; }
+      host.dataset.phase = bootTime < DOCUMENT_BOOT.nodesEnd ? "nodes" : bootTime < DOCUMENT_BOOT.linesEnd ? "lines" : bootTime < DOCUMENT_BOOT.energyStart ? "settling" : "energy";
+      host.dataset.interaction = ready && bootTime >= DOCUMENT_BOOT.pointerStart ? "ready" : "waiting";
+      if (surface!.width !== pixelWidth || surface!.height !== pixelHeight) { surface!.width = pixelWidth; surface!.height = pixelHeight; }
+      context!.setTransform(pixelWidth / width, 0, 0, pixelHeight / height, 0, 0);
+      if (dirty || base.width !== pixelWidth || base.height !== pixelHeight) {
+      base.width = pixelWidth; base.height = pixelHeight;
+      baseContext.setTransform(pixelWidth / width, 0, 0, pixelHeight / height, 0, 0);
+      // The fixed field is rasterized on resize and startup, independent of document scroll.
+      baseContext.clearRect(0, 0, width, height);
+      const { lattice } = grid;
+      const firstCol = Math.max(0, Math.ceil((-lattice.phaseX) / lattice.cell));
+      const lastCol = Math.min(lattice.cols - 1, Math.floor((width - lattice.phaseX) / lattice.cell));
+      const firstRow = Math.max(0, Math.ceil((-lattice.phaseY) / lattice.cell));
+      const lastRow = Math.min(lattice.rows - 1, Math.floor((height - lattice.phaseY) / lattice.cell));
+      baseContext.strokeStyle = "rgba(138,156,168,.16)"; baseContext.lineWidth = 1;
+      const reveal = documentReveal(bootTime, 0, 0).line;
+      baseContext.beginPath();
+      for (let col = firstCol; col <= lastCol; col++) {
+        const x = pointOf(lattice, col, 0).x;
+        baseContext.moveTo(x, 0); baseContext.lineTo(x, height * reveal);
+      }
+      for (let row = firstRow; row <= lastRow; row++) {
+        const y = pointOf(lattice, 0, row).y;
+        baseContext.moveTo(0, y); baseContext.lineTo(width * reveal, y);
+      }
+      baseContext.stroke(); baseContext.fillStyle = "rgba(135,206,235,.6)";
+      for (let row = firstRow; row <= lastRow; row++) for (let col = firstCol; col <= lastCol; col++) {
+        const point = pointOf(lattice, col, row);
+        baseContext.globalAlpha = documentReveal(bootTime, col, row).node;
+        baseContext.beginPath(); baseContext.arc(point.x, point.y, col % 2 === 0 && row % 2 === 0 ? 2.5 : 1.5, 0, Math.PI * 2); baseContext.fill();
+      }
+      baseContext.globalAlpha = 1;
+      dirty = false;
+      }
+      context!.clearRect(0, 0, width, height);
+      context!.drawImage(base, 0, 0, width, height);
+      if (moving && clock >= DOCUMENT_BOOT.energyStart) {
+        const { lattice } = grid;
+        activity ??= documentActivity(lattice, width, height, 0, 0);
+        const { firstCol, lastCol, firstRow, lastRow, nodes, active } = activity;
+        const band = `${lattice.cols}:${lattice.rows}:${firstCol}:${lastCol}:${lastRow - firstRow}:${active}:${Math.floor(firstRow / Math.max(1, lastRow - firstRow + 1))}`;
+        if (flowBand !== band) {
+          flowBand = band; trails.clear();
+          flows = createDocumentFlows(lattice, firstRow, lastRow, active, clock, firstCol, lastCol);
+        }
+        advanceDocumentFlows(flows, lattice, clock);
+        context!.strokeStyle = "#4682b4"; context!.lineWidth = 1.3;
+        for (const flow of flows) {
+          const t = energyEase((clock - flow.start) / flow.duration);
+          const a = pointOf(lattice, flow.from.col, flow.from.row), b = pointOf(lattice, flow.to.col, flow.to.row);
+          const key = `${flow.from.col}:${flow.from.row}:${flow.to.col}:${flow.to.row}`;
+          trails.set(key, { from: flow.from, to: flow.to, hit: clock, progress: t });
+          light(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, .95, 8);
+        }
+        for (const [key, trail] of trails) {
+          const alpha = Math.max(0, 1 - (clock - trail.hit) / 1800);
+          if (!alpha || trails.size > 128) { trails.delete(key); continue; }
+          const a = pointOf(lattice, trail.from.col, trail.from.row), b = pointOf(lattice, trail.to.col, trail.to.row);
+          context!.globalAlpha = alpha * .6;
+          context!.beginPath(); context!.moveTo(a.x, a.y);
+          context!.lineTo(a.x + (b.x - a.x) * trail.progress, a.y + (b.y - a.y) * trail.progress); context!.stroke();
+          light(a.x, a.y, alpha * .65, 6);
+        }
+        context!.globalAlpha = 1;
+        host.dataset.energyLights = String(flows.length);
+        host.dataset.viewportNodes = String(nodes);
+        host.dataset.activeRatio = "0.02";
+      }
+      if (pulse && ready && !query.matches && !pausedRef.current && document.visibilityState !== "hidden") {
+        const age = now - pulse.start;
+        const alpha = Math.max(0, Math.min(1, 1 - (now - pulse.released) / 450));
+        context!.globalAlpha = alpha;
+        context!.strokeStyle = "#87ceeb"; context!.lineWidth = 1.5;
+        for (const edge of pulse.graph.edges) {
+          const t = energyEase((age - edge.depth * 180) / 180);
+          if (!t) continue;
+          const a = pointOf(grid.lattice, edge.from.col, edge.from.row), b = pointOf(grid.lattice, edge.to.col, edge.to.row);
+          context!.beginPath(); context!.moveTo(a.x, a.y);
+          context!.lineTo(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t); context!.stroke();
+        }
+        for (const node of pulse.graph.nodes) {
+          const t = energyEase((age - node.depth * 180) / 180);
+          if (!t) continue;
+          const p = pointOf(grid.lattice, node.col, node.row), x = p.x, y = p.y;
+          context!.globalAlpha = alpha * t;
+          context!.drawImage(ensureSprite(), x - 10, y - 10, 20, 20);
+        }
+        context!.globalAlpha = 1;
+        if (alpha === 0) pulse = null;
+        else if (age < 720 || pulse.released !== Infinity) schedule();
+      }
+      if (moving) schedule();
+      host.dataset.gridOriginX = String(grid.lattice.phaseX); host.dataset.gridOriginY = String(grid.lattice.phaseY);
+      host.dataset.gridColumns = String(grid.lattice.cols); host.dataset.gridRows = String(grid.lattice.rows);
+      host.dataset.gridContentHeight = String(grid.height); host.dataset.runtime = "ready";
+    }
+    function schedule() { if (frame === null) frame = requestAnimationFrame(paint); }
+    function release() {
+      delete surface!.dataset.pointerNode;
+      if (pulse && pulse.released === Infinity) { pulse.released = performance.now(); schedule(); }
+    }
+    function hitPointer() {
+      inputFrame = null;
+      if (!ready || clock < DOCUMENT_BOOT.pointerStart || !grid || !latest || query.matches || pausedRef.current || document.visibilityState === "hidden") { release(); return; }
+      const { x, y } = latest;
+      if (x < 0 || y < 0 || x >= document.documentElement.clientWidth || y >= document.documentElement.clientHeight || document.querySelector("dialog[open]")) { release(); return; }
+      const node = nodeAt(grid.lattice, x, y, 12);
+      if (!node) { release(); return; }
+      const p = pointOf(grid.lattice, node.col, node.row);
+      if (Math.hypot(p.x - x, p.y - y) > 12) { release(); return; }
+      const hit = document.elementFromPoint(p.x, p.y);
+      // Occlusion belongs to the paper renderer. Hidden nodes still conduct energy.
+      if (hit?.closest("dialog,button,input,textarea,a")) { release(); return; }
+      const key = `${node.col}:${node.row}`;
+      if (pulse?.key === key && pulse.released === Infinity) return;
+      pulse = { key, start: performance.now(), released: Infinity, graph: pointerNeighbourhood(grid.lattice, node) };
+      surface!.dataset.pointerNode = key; schedule();
+    }
+    function move(event: PointerEvent) {
+      if (!event.isPrimary || (event.pointerType !== "mouse" && !event.buttons)) return;
+      latest = { x: event.clientX, y: event.clientY };
+      if (inputFrame === null) inputFrame = requestAnimationFrame(hitPointer);
+    }
+    function down(event: PointerEvent) {
+      move(event);
+      // Background gestures may own a node; content retains native selection and controls.
+      if (!event.isPrimary || event.button !== 0 || !ready || query.matches) return;
+      if (inputFrame !== null) { cancelAnimationFrame(inputFrame); inputFrame = null; }
+      hitPointer();
+      if (surface!.dataset.pointerNode && !(event.target instanceof Element && event.target.closest("main,header,footer"))) event.preventDefault();
+    }
+    function leave() { latest = null; release(); }
+    function endDrag(event: PointerEvent) { if (event.pointerType !== "mouse") leave(); }
+    function refresh() { if (latest && ready) hitPointer(); schedule(); }
+    function resize() {
+      const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
+      if (width <= 0 || height <= 0) return;
+      grid = { lattice: createLattice({ width, height, dpr: window.devicePixelRatio || 1 }), width, height };
+      activity = null; pulse = null; flowBand = ""; dirty = true; refresh();
+    }
+    function suspend() { previous = 0; dirty = true; if (query.matches || pausedRef.current || document.visibilityState === "hidden") { pulse = null; leave(); } schedule(); }
+    // One startup gate, based on real completion rather than a device-specific timeout.
+    async function enableAfterEntrance() {
+      if (document.readyState !== "complete") await new Promise<void>(resolve => window.addEventListener("load", () => resolve(), { once: true, signal: startup.signal }));
+      await document.fonts.ready;
+      if (disposed) return;
+      while (!disposed) {
+        await new Promise<void>(resolve => { gateFrame = requestAnimationFrame(() => { gateFrame = null; resolve(); }); });
+        if (disposed) return;
+        const animations = document.getAnimations().filter(animation => {
+          const timing = animation.effect?.getComputedTiming();
+          return (animation.playState === "running" || animation.pending) && Number.isFinite(Number(timing?.endTime));
+        });
+        if (!animations.length) break;
+        await Promise.allSettled(animations.map(animation => animation.finished));
+      }
+      if (disposed) return;
+      ready = true; schedule();
+      document.addEventListener("pointermove", move, { passive: true });
+      document.addEventListener("pointerdown", down);
+    }
+    const startup = new AbortController();
+    void enableAfterEntrance();
+    resize();
+    window.addEventListener("resize", resize);
+    window.visualViewport?.addEventListener("resize", resize);
+    window.addEventListener("scroll", refresh, { passive: true });
+    document.addEventListener("pointerleave", leave); document.addEventListener("pointercancel", leave);
+    document.addEventListener("pointerup", endDrag);
+    window.addEventListener("blur", leave);
+    document.addEventListener("visibilitychange", suspend); query.addEventListener("change", suspend);
+    window.addEventListener("blueprint-playstate", suspend);
+    return () => {
+      disposed = true; startup.abort(); window.removeEventListener("resize", resize); window.visualViewport?.removeEventListener("resize", resize); window.removeEventListener("scroll", refresh);
+      document.removeEventListener("pointermove", move); document.removeEventListener("pointerdown", down);
+      document.removeEventListener("pointerleave", leave); document.removeEventListener("pointercancel", leave);
+      document.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("blur", leave); document.removeEventListener("visibilitychange", suspend);
+      query.removeEventListener("change", suspend); window.removeEventListener("blueprint-playstate", suspend);
+      if (inputFrame !== null) cancelAnimationFrame(inputFrame);
+      if (gateFrame !== null) cancelAnimationFrame(gateFrame);
+      if (frame !== null) cancelAnimationFrame(frame);
+      delete host.dataset.layout; delete host.dataset.interaction; delete host.dataset.phase; delete host.dataset.energyLights; delete surface.dataset.pointerNode;
+      delete host.dataset.viewportNodes; delete host.dataset.activeRatio;
+    };
+  }, [variant]);
+  useEffect(() => {
     const surface = canvas.current;
     const element = plane.current;
     if (!surface || !element) return;
+    if (variant === "page" && element.closest(".public-site")) return;
     const context = surface.getContext("2d");
     if (!context) return;
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     let system = createEnergySystem(1, 1);
     let width = 1, height = 1, clock = 0, previous = 0, frame: number | null = null, pulse = -Infinity;
+    let pixelRatio = 0;
     let hoveredNode: number | null = null;
     let lastPointer: PointerEvent | null = null;
     const sprite = document.createElement("canvas");
@@ -149,10 +387,13 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       if (!staticFrame && !pausedRef.current && document.visibilityState !== "hidden") frame = requestAnimationFrame(draw);
     }
     function resize() {
-      width = element!.clientWidth; height = element!.clientHeight;
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const nextWidth = element!.clientWidth, nextHeight = element!.clientHeight;
+      if (nextWidth <= 0 || nextHeight <= 0) return;
+      const ratio = window.devicePixelRatio || 1;
+      if (width === nextWidth && height === nextHeight && pixelRatio === ratio) return;
+      width = nextWidth; height = nextHeight; pixelRatio = ratio;
       surface!.width = Math.round(width * ratio); surface!.height = Math.round(height * ratio);
-      context!.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context!.setTransform(surface!.width / width, 0, 0, surface!.height / height, 0, 0);
       system = createEnergySystem(width, height, Math.random, variant === "page" ? 136 : 64); clock = 0; previous = 0; hoveredNode = null;
       schedule();
     }
@@ -169,12 +410,38 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       if (event.pointerType !== "mouse" || !event.isPrimary || query.matches || pausedRef.current ||
         document.visibilityState === "hidden" || !surface!.getClientRects().length) { leavePointer(); return; }
       const bounds = element!.getBoundingClientRect();
-      const node = energyNodeAt(system, event.clientX - bounds.left, event.clientY - bounds.top, clock);
+      const point = canvasPointAt(event.clientX, event.clientY, {
+        left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height,
+        logicalWidth: width, logicalHeight: height,
+        viewportWidth: document.documentElement.clientWidth, viewportHeight: document.documentElement.clientHeight,
+      });
+      if (!point) { leavePointer(); return; }
+      const node = energyNodeAt(system, point.x, point.y, clock);
       if (!node) { leavePointer(); return; }
-      // Test the visible node itself: the page canvas also extends beneath opaque paper.
-      const hit = document.elementFromPoint(bounds.left + node.x, bounds.top + node.y);
-      const cover = hit?.closest(".cover-system");
+      const clientX = bounds.left + node.x * bounds.width / width;
+      const clientY = bounds.top + node.y * bounds.height / height;
       const page = element!.closest(".public-site");
+      if (variant === "page" && page) {
+        // Read the same live path that paints the paper, including rounded corners
+        // and transparent windows. No viewport/device selector can disagree with it.
+        const paper = page.querySelector<SVGPathElement>(".blueprint-paper-plane path");
+        const matrix = paper?.getScreenCTM();
+        const blocked = [...page.querySelectorAll<HTMLElement>(":scope > header, :scope > footer")].some(element => {
+          const box = element.getBoundingClientRect();
+          return clientX >= box.left && clientX <= box.right && clientY >= box.top && clientY <= box.bottom;
+        });
+        if (!paper || !matrix || blocked || document.querySelector("dialog[open]")) { leavePointer(); return; }
+        const local = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
+        if (paper.isPointInFill(local)) { leavePointer(); return; }
+        if (hoveredNode === node.id) return;
+        leavePointer(); hoveredNode = node.id;
+        surface!.dataset.pointerNode = String(node.id);
+        if (stimulateEnergyNode(system, node.id, clock) && frame === null) schedule();
+        return;
+      }
+      // Test the visible node itself: the page canvas also extends beneath opaque paper.
+      const hit = document.elementFromPoint(clientX, clientY);
+      const cover = hit?.closest(".cover-system");
       // The cross and labels are transparent block-level spans: their boxes
       // cover visible nodes too. Only the filled output box occludes the grid.
       const visible = hit && !hit.closest("dialog, header, footer, .cover-caption, .system-nodes > span:last-child, button, input, textarea") &&
@@ -187,10 +454,12 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       hoveredNode = node.id;
       if (stimulateEnergyNode(system, node.id, clock) && frame === null) schedule();
     }
-    function leavePointer() { hoveredNode = null; releaseEnergyPointer(system, clock); }
+    function leavePointer() { hoveredNode = null; delete surface!.dataset.pointerNode; releaseEnergyPointer(system, clock); }
     function refreshPointer() { if (lastPointer) movePointer(lastPointer); }
     function exitPointer() { lastPointer = null; leavePointer(); }
     const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(element);
+    window.addEventListener("resize", resize);
+    window.visualViewport?.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", schedule);
     window.addEventListener("blueprint-energy", stimulate);
     window.addEventListener("blueprint-playstate", schedule);
@@ -203,6 +472,8 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     return () => {
       if (frame !== null) cancelAnimationFrame(frame);
       resizeObserver.disconnect(); document.removeEventListener("visibilitychange", schedule);
+      window.removeEventListener("resize", resize);
+      window.visualViewport?.removeEventListener("resize", resize);
       window.removeEventListener("blueprint-energy", stimulate);
       window.removeEventListener("blueprint-playstate", schedule); query.removeEventListener("change", schedule);
       document.removeEventListener("pointermove", movePointer);

@@ -45,6 +45,16 @@
   border-color: var(--line);
 }
 .entry-modal-close > span { font-size: 1.5rem; line-height: 1; }
+.entry-modal-arrow {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 3px #87ceeb88);
+}
+.entry-modal-arrow path { stroke: var(--color-steel); stroke-width: 1.5; }
+.entry-modal-arrow circle { fill: var(--color-sky); }
+.entry-modal-arrow .travelling-node { filter: drop-shadow(0 0 2px var(--color-sky)); }
 .entry-modal-scroll {
   min-height: 0;
   overflow-y: auto;
@@ -113,6 +123,61 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .entry-modal[open] { animation: content-appear 220ms ease-out; }
+}
+.public-site .area-summary .detail-heading { max-width: 65ch; }
+.area-summary h3 { font-size: var(--text-body); margin-block: var(--space-half) var(--space-quarter); }
+.area-summary ul { padding-left: var(--space-half); margin-block: var(--space-quarter) var(--space-half); }
+.area-summary li + li { margin-top: var(--space-quarter); }
+.area-summary .area-evidence-links { display: flex; flex-wrap: wrap; gap: var(--space-half); padding: 0; list-style: none; }
+.area-summary .area-evidence-links li { margin: 0; }
+.area-evidence-links a { display: inline-block; padding-block: var(--space-quarter); }
+/* Area dialogs reuse the open folder: one title tab, inset window and return above it. */
+.public-site .entry-modal-folder { border: 0; border-radius: 0; box-shadow: none; }
+.entry-modal-folder .entry-modal-toolbar { padding: 0; border: 0; background: transparent; }
+.area-folder-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--space-quarter) var(--content-space);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: .75rem .75rem 0 0;
+  background: var(--color-sky);
+  font-size: clamp(1.35rem, 1rem + 1.4vw, 2.75rem);
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+.entry-modal-folder .entry-modal-scroll {
+  border: 1px solid var(--line);
+  border-radius: 0 .75rem .75rem .75rem;
+}
+.area-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--space-quarter) var(--content-space);
+  background: var(--paper);
+}
+.public-site .entry-modal-folder .area-summary > .detail-heading {
+  padding: 0 var(--content-space) var(--content-space);
+  max-width: none;
+}
+.entry-modal-folder .entry-parallax-window {
+  border: var(--content-space) solid var(--paper);
+  border-top: 0;
+  min-height: clamp(10rem, 28dvh, 22rem);
+}
+@media (min-width: 64rem) {
+  .entry-modal-folder .entry-parallax-window { min-height: 0; }
+  .public-site .entry-modal-folder .area-summary > .detail-heading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }
 .engineering-method {
   display: grid;

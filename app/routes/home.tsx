@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { published, pageMeta, homeSeo, caseAreas } from "../content";
+import { published, pageMeta, homeSeo, caseAreas, resolveCaseFragment, standaloneCaseFragmentPath } from "../content";
 import { entryPath } from "../../shared/contracts";
 import { useReducedMotion } from "../../shared/motion";
-import { EntryModal } from "../components/ProjectCard";
-import { PixelMark } from "../components/EditorialDemo";
+import { AreaModal } from "../components/ProjectCard";
+import { useEnergySequence } from "../components/PageMotion";
 export const meta = () =>
   pageMeta(
     homeSeo.title,
@@ -13,6 +13,39 @@ export const meta = () =>
   );
 export default function Home() {
   const reduced = useReducedMotion();
+  const services = useRef<HTMLUListElement>(null);
+  const workHeading = useRef<HTMLDivElement>(null);
+  const [activeServiceItem, setActiveServiceItem] = useState<string | null>(null);
+  const highlightTouchedService = (event: React.TouchEvent<HTMLUListElement>) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const item = event.currentTarget.ownerDocument.elementFromPoint(touch.clientX, touch.clientY)
+      ?.closest<HTMLElement>("[data-service-item]");
+    setActiveServiceItem(item && event.currentTarget.contains(item) ? item.dataset.serviceItem ?? null : null);
+  };
+  useEnergySequence(services);
+  useEnergySequence(workHeading);
+  useEffect(() => {
+    const rows = [...services.current!.querySelectorAll<HTMLElement>(".service-row")];
+    // offsetTop is relative to the positioned row, unaffected by page parallax.
+    const alignMiddleItems = () => {
+      for (const row of rows) {
+        const items = row.querySelectorAll<HTMLElement>("[data-service-item]");
+        const middle = items[Math.floor(items.length / 2)];
+        if (middle) row.style.setProperty("--service-middle-center", `${middle.offsetTop + middle.offsetHeight / 2}px`);
+      }
+    };
+    const observer = new ResizeObserver(alignMiddleItems);
+    for (const row of rows) {
+      observer.observe(row);
+      row.querySelectorAll("[data-service-item]").forEach(item => observer.observe(item));
+    }
+    alignMiddleItems();
+    return () => {
+      observer.disconnect();
+      rows.forEach(row => row.style.removeProperty("--service-middle-center"));
+    };
+  }, []);
   const location = useLocation();
   const navigate = useNavigate();
   // Match the server on hydration, then restore deep links and browser history.
@@ -20,12 +53,11 @@ export default function Home() {
   useEffect(() => setHydrated(true), []);
   const hash = hydrated ? location.hash : "";
   const cases = published.entries.filter(entry => entry.kind === "case");
-  const experienceLabels: Record<string, string> = {
-    "operacion-cms": "AEM: frontend y gestión de contenido",
-    fak: "Federación de Kendo: sitio y actualización de eventos",
-    "portafolio-editorial": "Portafolio: revisión y publicación editorial",
-    "auditoria-datos": "Investigación y revisión de calidad del catálogo",
-  };
+  const selected = resolveCaseFragment(hash);
+  useEffect(() => {
+    const path = standaloneCaseFragmentPath(hash);
+    if (path) navigate(path, { replace: true });
+  }, [hash, navigate]);
   return (
     <>
       <section className="hero editorial-hero" aria-labelledby="hero-title">
@@ -45,12 +77,12 @@ export default function Home() {
             Acá podés conocer mis servicios y la experiencia que aporto a un equipo.
           </p>
           <div className="hero-actions">
-            <Link className="button" to="/#servicios">
-              Ver servicios <span aria-hidden="true">↗</span>
-            </Link>
-            <Link className="text-link" to="/#proyectos">
-              Explorar mi experiencia ↗
-            </Link>
+            <a className="button" href="https://github.com/AndMad404" target="_blank" rel="noopener noreferrer">
+              GitHub <span aria-hidden="true">↗</span>
+            </a>
+            <a className="text-link" href="https://www.linkedin.com/in/andres-mad/" target="_blank" rel="noopener noreferrer">
+              LinkedIn <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
       </section>
@@ -61,36 +93,29 @@ export default function Home() {
       >
         <div className="section-heading" data-reveal>
           <div>
-            <p className="eyebrow">
-              <PixelMark /> 01 / CÓMO PUEDO AYUDARTE
-            </p>
-            <h2 id="services-title">Tu sitio. El siguiente paso.</h2>
+            <h2 id="services-title">Servicios que puedo ofrecerte.</h2>
           </div>
-          <p>Podemos partir de una página nueva, un sitio que necesita mejoras o una tarea que se repite.</p>
         </div>
-        <ul className="service-list">
+        <ul className="service-list" ref={services}
+          onTouchStart={highlightTouchedService} onTouchMove={highlightTouchedService}
+          onTouchEnd={() => setActiveServiceItem(null)} onTouchCancel={() => setActiveServiceItem(null)}>
           {published.entries
             .filter((entry) => entry.kind === "service")
-            .map((entry, index) => (
+            .map((entry) => (
               <li className="service-disclosure" key={entry.id}>
-                <Link className="service-row" data-reveal id={`resumen-servicio-${entry.slug}`}
-                  to={entryPath(entry)} aria-haspopup="dialog" aria-controls={`modal-${entry.id}`}
-                  onClick={(event) => {
-                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                    event.preventDefault();
-                    navigate(`/${location.search}#servicio-${entry.slug}`,
-                      { preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true } });
-                  }}>
-                  <span className="service-number">0{index + 1}</span>
-                  <h3>{entry.title}</h3>
-                  <p>{entry.summary}</p>
-                  <span className="service-arrow" aria-hidden="true">↗</span>
-                </Link>
-                <EntryModal entry={entry} open={hash === `#servicio-${entry.slug}`}
-                  onRequestClose={() => {
-                    if (location.state?.entryModal) navigate(-1);
-                    else navigate(`/${location.search}#servicios`, { replace: true, preventScrollReset: true, viewTransition: !reduced });
-                  }} />
+                <div className="service-row" data-energy-sequence id={`resumen-servicio-${entry.slug}`}>
+                  <div className="service-heading">
+                    <h3 data-energy-title>{entry.title}</h3>
+                    <span className="service-node" data-energy-node aria-hidden="true"><i /><i /><i className="service-node-traveller" /></span>
+                  </div>
+                  <div className="service-offer">
+                    <ul>{entry.decisions.map((item, index) => {
+                      const itemId = `${entry.id}-${index}`;
+                      return <li key={item} data-energy-description data-service-item={itemId}
+                        className={activeServiceItem === itemId ? "is-touch-active" : undefined}>{item}</li>;
+                    })}</ul>
+                  </div>
+                </div>
               </li>
             ))}
         </ul>
@@ -100,48 +125,40 @@ export default function Home() {
         className="section work-section"
         aria-labelledby="work-title"
       >
-        <div className="section-heading" data-reveal>
+        <div className="section-heading work-heading" ref={workHeading} data-energy-sequence>
           <div>
-            <p className="eyebrow">
-              <PixelMark /> 02 / TIPOS DE TRABAJO
-            </p>
-            <h2 id="work-title">Cómo puedo aportar.</h2>
+            <h2 id="work-title" data-energy-title>Cómo puedo aportar.</h2>
           </div>
-          <p>
-            Cuatro áreas de trabajo: sitios administrables, desarrollo web, flujos de contenido y calidad de datos.
+          <span className="service-node work-heading-node" data-energy-node aria-hidden="true"><i /><i /><i className="service-node-traveller" /></span>
+          <p data-energy-description>
+            Casos de desarrollo de interfaces e integraciones, calidad de software y datos, y automatización de procesos.
           </p>
         </div>
         <div className="project-grid" id="project-results">
           {caseAreas.map(area => {
-            const representative = cases.find(entry => entry.id === area.entryId)!;
             return <article className="project-card work-type" data-parallax="folder" key={area.id}>
               <h3 className="work-type-title">{area.title}</h3>
               <div className="work-type-body">
-              <div className="work-type-content">
-                <p>{representative.summary}</p>
-                <ul className="work-experiences" aria-label={`Experiencia en ${area.label}`}>
-                  {area.experienceIds.map(id => {
-                    const entry = cases.find(item => item.id === id)!;
-                    const firstArea = caseAreas.find(item => item.experienceIds.includes(id));
-                    return <li key={id}><Link
-                      id={firstArea === area ? `resumen-${entry.slug}` : undefined}
-                      to={entryPath(entry)} aria-haspopup="dialog" aria-controls={`modal-${entry.id}`}
-                      onClick={event => {
-                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                        event.preventDefault();
-                        navigate(`/${location.search}#caso-${entry.slug}`, {
-                          preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true },
-                        });
-                      }}>{experienceLabels[id] ?? entry.title} ↗</Link></li>;
-                  })}
-                </ul>
-              </div>
               <div className="work-type-window" aria-hidden="true" />
+              <div className="work-type-content">
+                <p>{area.introduction}</p>
+                <Link id={`resumen-area-${area.id}`} className="button"
+                  to={entryPath(cases.find(entry => entry.id === area.entryId)!)} aria-label={`Conocer más: ${area.label}`}
+                  aria-haspopup="dialog" aria-controls={area.modalId}
+                  onClick={event => {
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    navigate(`/${location.search}#area-${area.id}`, {
+                      preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true },
+                    });
+                  }}>Conocer más</Link>
+              </div>
               </div>
             </article>;
           })}
         </div>
-        {cases.map(entry => <EntryModal key={entry.id} entry={entry} open={hash === `#caso-${entry.slug}`}
+        {caseAreas.map(area => <AreaModal key={area.id} area={area} entries={cases}
+          open={selected?.area.id === area.id} experienceId={selected?.area.id === area.id ? selected.experienceId : undefined}
           onRequestClose={() => {
             if (location.state?.entryModal) navigate(-1);
             else navigate(`/${location.search}#proyectos`, { replace: true, preventScrollReset: true });
@@ -149,7 +166,6 @@ export default function Home() {
       </section>
       <section id="perfil" className="section profile-method" aria-labelledby="profile-title">
         <header className="profile-method-intro" data-reveal>
-          <p className="eyebrow"><PixelMark /> 03 / PERFIL</p>
           <h2 id="profile-title">Perfil y forma de trabajar.</h2>
           <p>Más de siete años entre desarrollo web, contenido empresarial y calidad de datos.
             Conecto el consumo, la transformación, la validación y la presentación de información.</p>

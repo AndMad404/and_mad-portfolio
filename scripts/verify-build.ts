@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { snapshotSchema, entryPath } from "../shared/contracts";
-import { homeSeo, siteIdentity, caseAreas, structuredServices } from "../app/content";
+import { homeSeo, siteIdentity, caseAreas, structuredServices, areaStories } from "../app/content";
 const snapshot = snapshotSchema.parse(
   JSON.parse(await readFile("content/published.json", "utf8")),
 );
@@ -23,8 +23,11 @@ const escape = (s: string) => s
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
 function verifyEntryText(html: string, entry: (typeof snapshot.entries)[number]) {
-  for (const value of [entry.title, entry.summary, entry.problem, entry.contribution,
-    ...entry.decisions, entry.results, entry.limits, ...entry.evidence.map(item => item.label)]) {
+  const values = entry.kind === "service"
+    ? [entry.title, entry.summary, entry.contribution, ...entry.decisions, entry.limits]
+    : [entry.title, entry.summary, entry.problem, entry.contribution,
+      ...entry.decisions, entry.results, entry.limits, ...entry.evidence.map(item => item.label)];
+  for (const value of values) {
     assert.ok(html.includes(escape(value)), `Texto completo sin ejecutar JavaScript: ${entry.slug}`);
   }
 }
@@ -119,19 +122,31 @@ for (const route of paths) {
         `Ancla visible sin JavaScript: ${section}`,
       );
     }
-    const attached = new Set(caseAreas.flatMap(area => area.experienceIds));
-    for (const item of snapshot.entries.filter(item => item.kind === "service" || attached.has(item.id))) {
+    for (const item of snapshot.entries.filter(item => caseAreas.some(area => area.entryId === item.id))) {
       assert.ok(
         html.includes(`href="${entryPath(item)}"`),
         `Ruta accesible sin JavaScript: ${item.slug}`,
       );
     }
-    assert.equal([...html.matchAll(/<dialog(?:\s|>)/g)].length, snapshot.entries.length,
-      "Cada caso y servicio conserva un modal de detalle en HTML");
+    assert.equal([...html.matchAll(/<dialog(?:\s|>)/g)].length, caseAreas.length,
+      "Cuatro modales de área en HTML");
+    for (const area of caseAreas) {
+      assert.ok(html.includes(`id="${area.modalId}"`));
+      assert.ok(html.includes(`aria-controls="${area.modalId}"`));
+      assert.ok(html.includes(escape(area.introduction)));
+      const story = areaStories[area.id]!;
+      for (const text of [story.trajectory, ...story.results]) {
+        assert.ok(html.includes(escape(text)), `Síntesis comercial completa: ${area.id}`);
+      }
+    }
     for (const item of snapshot.entries) {
-      assert.ok(html.includes(`id="modal-${item.id}"`), `Modal: ${item.id}`);
-      if (item.kind === "service" || attached.has(item.id)) assert.ok(html.includes(`aria-controls="modal-${item.id}"`), "Control del modal");
-      verifyEntryText(html, item);
+      if (item.kind === "service") {
+        const section = html.slice(html.indexOf('id="servicios"'), html.indexOf('id="proyectos"'));
+        for (const value of [item.title, ...item.decisions]) assert.ok(section.includes(escape(value)), `Servicio visible sin interacción: ${item.slug}`);
+        assert.doesNotMatch(section, /<a\b|<button\b|<dialog\b|<details\b/);
+        continue;
+      }
+      assert.ok(!html.includes(`id="modal-${item.id}"`), "Las fichas históricas conservan su página, sin volcarse en la portada");
     }
     assert.match(html, /class="blueprint-background" aria-hidden="true"/);
     assert.match(html, /class="blueprint-energy-canvas"/);

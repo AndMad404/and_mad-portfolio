@@ -17,10 +17,14 @@
   bottom: 0;
   width: 95%;
   height: auto;
-  color: var(--color-blue-gray);
+  color: var(--color-steel);
 }
-.nav-node path { stroke: currentColor; stroke-width: 1.5; }
-.nav-node circle { fill: currentColor; }
+.nav-node path {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.nav-node circle { fill: var(--color-sky); }
 .public-site .header nav a[aria-current] .nav-node {
   color: var(--color-steel);
   filter: drop-shadow(0 0 3px var(--color-sky));

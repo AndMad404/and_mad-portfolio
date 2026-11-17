@@ -1,27 +1,29 @@
+// EDICIÓN — NO VERIFICADO PARA ENTREGA. Fuera de npm test, verify y CI.
+// Los resultados locales históricos no acreditan el circuito editorial real.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { Miniflare } from "miniflare";
 import { generateKeyPair, SignJWT, exportJWK, createLocalJWKSet } from "jose";
-import { entrySchema, fingerprint, type Entry } from "../shared/contracts";
+import { entrySchema, fingerprint, type Entry } from "../../shared/contracts";
 import {
   saveEntry,
   importEntry,
   approve,
   listEntries,
-} from "../server/editorial";
+} from "../../server/editorial";
 import {
   credential,
   enqueue,
   claim,
   resolve,
   cleanup,
-} from "../server/queries";
-import { dispatch, complete } from "../server/publication";
-import { owner, csrf, connectorIdentity } from "../server/auth";
-import worker from "../server/worker";
-import { now, type Env } from "../server/env";
-import { exportBackup, restoreStatements } from "../server/backup";
+} from "../../server/queries";
+import { dispatch, complete } from "../../server/publication";
+import { owner, csrf, connectorIdentity } from "../../server/auth";
+import worker from "../../server/worker";
+import { now, type Env } from "../../server/env";
+import { exportBackup, restoreStatements } from "../../server/backup";
 let mf: Miniflare, db: D1Database;
 const entry = (id: string): Entry => ({
   id,

@@ -467,3 +467,7 @@
   background-size: var(--grid-unit) var(--grid-unit);
 }
 .blueprint-background .blueprint-plane > svg :is(circle, rect, path) { animation: none !important; }
+.public-site > .blueprint-background[data-layout="viewport"] .blueprint-plane {
+  inset: 0;
+  background: none;
+}
