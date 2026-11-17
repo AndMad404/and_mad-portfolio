@@ -44,32 +44,45 @@ function assertPositive(name: string, value: number): void {
 function mod(value: number, period: number): number {
   return ((value % period) + period) % period;
 }
-function snapPhase(value: number, dpr: number): number {
+function snapPhase(value: number, dpr: number, cell: number): number {
   const snapped = Math.round(value * dpr) / dpr;
   if (!Number.isFinite(snapped)) throw new RangeError("Fase no representable");
-  // Subtracting CELL would break physical-pixel alignment if CELL*dpr is fractional.
-  return snapped >= CELL ? 0 : snapped;
+  // Subtracting cell would break physical-pixel alignment if cell*dpr is fractional.
+  return snapped >= cell ? 0 : snapped;
+}
+
+/** The public viewport uses the same cell and node sizes at every width. */
+export function viewportGridMetrics(rem = 16) {
+  assertPositive("rem", rem);
+  return {
+    cell: 3.75 * rem,
+    nodeRadius: 3.5 * rem / 16,
+    majorRadius: 4.5 * rem / 16,
+    pointerReach: 1.375 * rem,
+  };
 }
 
 /** Frozen, bucketed capacity covering the viewport, with a centered X phase.
  * phaseY=0 explicitly anchors the grid to the top of the viewport.
  */
 export function createLattice({ width, height, dpr }: LatticeDevice, options: {
-  originX?: number; originY?: number; bucket?: number;
+  originX?: number; originY?: number; bucket?: number; cell?: number;
 } = {}): Lattice {
   assertPositive("width", width);
   assertPositive("height", height);
   assertPositive("dpr", dpr);
+  const cell = options.cell ?? CELL;
+  assertPositive("cell", cell);
   const bucket = options.bucket ?? BUCKET;
   if (!Number.isSafeInteger(bucket) || bucket < 1) throw new RangeError("Invalid bucket");
-  const phaseX = options.originX ?? snapPhase(mod(width / 2, CELL), dpr);
+  const phaseX = options.originX ?? snapPhase(mod(width / 2, cell), dpr, cell);
   const phaseY = options.originY ?? 0;
   if (![phaseX, phaseY].every(Number.isFinite)) throw new RangeError("Invalid origin");
-  const cols = Math.ceil(Math.max(2, Math.ceil((width - Math.min(phaseX, 0)) / CELL) + 1) / bucket) * bucket;
-  const rows = Math.ceil(Math.max(2, Math.ceil((height - Math.min(phaseY, 0)) / CELL) + 1) / bucket) * bucket;
+  const cols = Math.ceil(Math.max(2, Math.ceil((width - Math.min(phaseX, 0)) / cell) + 1) / bucket) * bucket;
+  const rows = Math.ceil(Math.max(2, Math.ceil((height - Math.min(phaseY, 0)) / cell) + 1) / bucket) * bucket;
   if (!Number.isSafeInteger(cols) || !Number.isSafeInteger(rows) || !Number.isSafeInteger(cols * rows))
     throw new RangeError("Capacidad de retícula no representable de forma segura");
-  return Object.freeze({ cell: CELL, cols, rows, phaseX, phaseY });
+  return Object.freeze({ cell, cols, rows, phaseX, phaseY });
 }
 
 /** The document and all its consumers share this coordinate space.

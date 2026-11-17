@@ -12,6 +12,8 @@
 }
 /* Keep this compact section independent of the shared full-cell spacing. */
 .public-site[data-document-grid] .services-section {
+  /* Prevent lattice rounding from stretching the heading row. */
+  min-height: 0;
   gap: calc(var(--grid-unit) / 2);
 }
 .public-site[data-document-grid] > main.shell > .services-section {

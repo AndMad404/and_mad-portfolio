@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "./motion";
 import { canvasPointAt, nodeAt } from "./lattice";
 import { pointOf } from "./lattice";
-import { createLattice } from "./lattice";
+import { createLattice, viewportGridMetrics } from "./lattice";
 import { ENERGY_CELL, advanceEnergy, createEnergySystem, energyEase, nodePower, linePower, energyNodeAt, stimulateEnergyNode, releaseEnergyPointer, pointerPower, pointerNeighbourhood, DOCUMENT_BOOT, documentReveal, documentActivity, createDocumentFlows, advanceDocumentFlows, type DocumentFlow } from "./BlueprintEnergy";
 
 const CELL = ENERGY_CELL;
@@ -94,7 +94,8 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     if (variant !== "page" || !element?.closest(".public-site") || !surface) return;
     const context = surface.getContext("2d");
     if (!context) return;
-    let grid: { lattice: ReturnType<typeof createLattice>; width: number; height: number } | null = null;
+    let grid: { lattice: ReturnType<typeof createLattice>; width: number; height: number;
+      metrics: ReturnType<typeof viewportGridMetrics> } | null = null;
     let frame: number | null = null;
     const host = element.parentElement!;
     const query = matchMedia("(prefers-reduced-motion: reduce)");
@@ -165,7 +166,9 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       for (let row = firstRow; row <= lastRow; row++) for (let col = firstCol; col <= lastCol; col++) {
         const point = pointOf(lattice, col, row);
         baseContext.globalAlpha = documentReveal(bootTime, col, row).node;
-        baseContext.beginPath(); baseContext.arc(point.x, point.y, col % 2 === 0 && row % 2 === 0 ? 2.5 : 1.5, 0, Math.PI * 2); baseContext.fill();
+        baseContext.beginPath(); baseContext.arc(point.x, point.y,
+          col % 2 === 0 && row % 2 === 0 ? grid.metrics.majorRadius : grid.metrics.nodeRadius,
+          0, Math.PI * 2); baseContext.fill();
       }
       baseContext.globalAlpha = 1;
       dirty = false;
@@ -230,6 +233,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       if (moving) schedule();
       host.dataset.gridOriginX = String(grid.lattice.phaseX); host.dataset.gridOriginY = String(grid.lattice.phaseY);
       host.dataset.gridColumns = String(grid.lattice.cols); host.dataset.gridRows = String(grid.lattice.rows);
+      host.dataset.gridCell = String(grid.lattice.cell);
       host.dataset.gridContentHeight = String(grid.height); host.dataset.runtime = "ready";
     }
     function schedule() { if (frame === null) frame = requestAnimationFrame(paint); }
@@ -242,10 +246,10 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       if (!ready || clock < DOCUMENT_BOOT.pointerStart || !grid || !latest || query.matches || pausedRef.current || document.visibilityState === "hidden") { release(); return; }
       const { x, y } = latest;
       if (x < 0 || y < 0 || x >= document.documentElement.clientWidth || y >= document.documentElement.clientHeight || document.querySelector("dialog[open]")) { release(); return; }
-      const node = nodeAt(grid.lattice, x, y, 12);
+      // A 44px square at the default root size, independent of visible node size.
+      const node = nodeAt(grid.lattice, x, y, grid.metrics.pointerReach);
       if (!node) { release(); return; }
       const p = pointOf(grid.lattice, node.col, node.row);
-      if (Math.hypot(p.x - x, p.y - y) > 12) { release(); return; }
       const hit = document.elementFromPoint(p.x, p.y);
       // Occlusion belongs to the paper renderer. Hidden nodes still conduct energy.
       if (hit?.closest("dialog,button,input,textarea,a")) { release(); return; }
@@ -273,7 +277,9 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     function resize() {
       const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
       if (width <= 0 || height <= 0) return;
-      grid = { lattice: createLattice({ width, height, dpr: window.devicePixelRatio || 1 }), width, height };
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const metrics = viewportGridMetrics(rem);
+      grid = { lattice: createLattice({ width, height, dpr: window.devicePixelRatio || 1 }, { cell: metrics.cell }), width, height, metrics };
       activity = null; pulse = null; flowBand = ""; dirty = true; refresh();
     }
     function suspend() { previous = 0; dirty = true; if (query.matches || pausedRef.current || document.visibilityState === "hidden") { pulse = null; leave(); } schedule(); }
@@ -320,6 +326,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       if (frame !== null) cancelAnimationFrame(frame);
       delete host.dataset.layout; delete host.dataset.interaction; delete host.dataset.phase; delete host.dataset.energyLights; delete surface.dataset.pointerNode;
       delete host.dataset.viewportNodes; delete host.dataset.activeRatio;
+      delete host.dataset.gridCell;
     };
   }, [variant]);
   useEffect(() => {

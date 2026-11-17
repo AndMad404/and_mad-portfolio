@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canvasPointAt, createLattice, documentLayout, latticeTracks, nodeAt, pointOf } from "../shared/lattice";
+import { canvasPointAt, createLattice, documentLayout, latticeTracks, nodeAt, pointOf, viewportGridMetrics } from "../shared/lattice";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement, Fragment } from "react";
 import { readFile } from "node:fs/promises";
@@ -12,6 +12,38 @@ import { readPublicStyles } from "./helpers/public-styles";
 
 // Cover current documentGrid/BlueprintBackground consumers, not the G1 reference.
 const EPS = 1e-8;
+
+test("el fondo mantiene las medidas de móvil hasta 4K", () => {
+  const metrics = viewportGridMetrics();
+  assert.deepEqual(metrics, { cell: 60, nodeRadius: 3.5, majorRadius: 4.5, pointerReach: 22 });
+  for (const [width, height] of [[390, 844], [768, 1024], [1440, 900], [3840, 2160]] as const) {
+    const device = { width, height, dpr: 1.25 };
+    const grid = createLattice(device, { cell: metrics.cell });
+    assert.equal(pointOf(grid, 1, 0).x - pointOf(grid, 0, 0).x, 60);
+    assert.ok(pointOf(grid, grid.cols - 1, 0).x >= width);
+    assert.ok(pointOf(grid, 0, grid.rows - 1).y >= height);
+    assert.equal(documentLayout(device, 0, 80).lattice.cell, 40);
+  }
+  assert.equal(viewportGridMetrics(20).cell, 75, "Respeta el tamaño raíz de texto");
+  assert.throws(() => viewportGridMetrics(0), RangeError);
+  assert.throws(() => createLattice({ width: 390, height: 844, dpr: 1 }, { cell: 0 }), RangeError);
+});
+
+test("el área de toque de 44px selecciona las esquinas sin solaparse con el nodo vecino", () => {
+  const metrics = viewportGridMetrics();
+  for (const width of [320, 390, 768, 1024, 1920, 3840]) {
+    const grid = createLattice({ width, height: 844, dpr: 2.475 }, { cell: metrics.cell });
+    const target = { col: 2, row: 2 }, p = pointOf(grid, target.col, target.row);
+    assert.deepEqual(nodeAt(grid, p.x + 22, p.y + 22, metrics.pointerReach), target);
+    assert.equal(nodeAt(grid, p.x + 22.01, p.y, metrics.pointerReach), null);
+    assert.equal(nodeAt(grid, p.x + metrics.cell / 2, p.y, metrics.pointerReach), null);
+    const neighbor = pointOf(grid, 3, 2);
+    assert.deepEqual(nodeAt(grid, neighbor.x - 22, neighbor.y, metrics.pointerReach), { col: 3, row: 2 });
+    const activity = documentActivity(grid, width, 844, 0, 0);
+    const flows = createDocumentFlows(grid, activity.firstRow, activity.lastRow, activity.active, 0, activity.firstCol, activity.lastCol);
+    assert.ok(flows.length <= 32 && flows.length <= activity.nodes);
+  }
+});
 
 test("el pintado omite viewports vacíos y se recupera sin canvas de dimensión cero", async () => {
   const source = await readFile("shared/BlueprintBackground.tsx", "utf8");
@@ -30,7 +62,8 @@ test("el pintado omite viewports vacíos y se recupera sin canvas de dimensión 
   const state = {
     document: { documentElement: viewport, visibilityState: "visible" },
     window: { devicePixelRatio: 1.25 },
-    grid: { lattice: createLattice({ width: 390, height: 844, dpr: 1.25 }), width: 390, height: 844 },
+    grid: { lattice: createLattice({ width: 390, height: 844, dpr: 1.25 }), width: 390, height: 844,
+      metrics: viewportGridMetrics() },
     frame: null, previous: 42, dirty: true, clock: 0, bootFinished: true,
     query: { matches: true }, pausedRef: { current: false }, ready: false, pulse: null,
     host: { dataset: {} }, surface: { width: 0, height: 0 }, base: { width: 0, height: 0 },
@@ -311,7 +344,7 @@ test("el fondo público usa solo el viewport y no proyecta el scroll documental"
   const page = source.slice(source.indexOf('if (variant !== "page"'), source.indexOf('if (variant === "page" && element.closest'));
   assert.match(page, /createLattice\(\{ width, height, dpr:/);
   assert.match(page, /height = document.documentElement.clientHeight/);
-  assert.match(page, /nodeAt\(grid.lattice, x, y, 12\)/);
+  assert.match(page, /nodeAt\(grid.lattice, x, y, grid.metrics.pointerReach\)/);
   assert.doesNotMatch(page, /scrollHeight|scrollX|scrollY|subscribeDocumentGrid/);
   assert.match(page, /window.addEventListener\("resize", resize\)/);
   assert.match(page, /window.removeEventListener\("resize", resize\)/);
