@@ -1,42 +1,48 @@
-# Dependencies and generated output
+# Directorios generados: dependencias, compilacion, cache y pruebas
 node_modules/
 build/
 dist/
 .react-router/
 .wrangler/
-*.tsbuildinfo
-*.log
 coverage/
+.cache/
 .tmp/
+tmp/
 temp/
-
-# Local settings, secrets and database backups
-.dev.vars
-.dev.vars.*
-.env
-.env.*
-!.env.example
-connector/config.local.json
-*.sqlite*
 backups/
-wrangler.studio.generated.json
 
-# Prometheus / local agent infrastructure (not part of the published product)
+# Directorios internos: agentes, contexto y planificacion
 .codex/
 .claude/
 .cursor/
 .opencode/
-.aider*
+context-library/
+docs/
+internal/
+planning/
+
+# Integracion local con Prometheus: aun hay archivos rastreados
+# cuya retirada requiere desacoplar primero las pruebas.
+connector/
+
+# Archivos internos existentes en la raiz (excepciones inevitables
+# hasta que se reorganicen en un directorio privado)
 AGENTS.md
 CLAUDE.md
+ROADMAP.md
 context-index.md
-context-library/
 dependency-index.json
 
-# Internal planning, architecture and research
-ROADMAP.md
-docs/
+# Archivos de configuracion local y secretos
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+wrangler.studio.generated.json
 
-# Local Prometheus connector: requires separate migration of its tests
-# before being removed from Git tracking.
-connector/
+# Archivos temporales o de datos locales
+.aider*
+*.sqlite*
+*.tsbuildinfo
+*.log
