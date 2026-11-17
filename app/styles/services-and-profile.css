@@ -109,9 +109,23 @@
   left: 0;
   opacity: 0;
 }
-@media (max-width: 47.99rem) and (orientation: portrait) {
+@media (max-width: 47.99rem) {
   .public-site .service-row {
-    grid-template-areas: "node" "title" "description";
+    grid-template-areas: "heading" "description";
+  }
+  .service-heading {
+    grid-area: heading;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-quarter);
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: center;
+  }
+  .public-site .service-heading h3,
+  .service-heading .service-node {
+    grid-area: auto;
   }
 }
 @media (min-width: 64rem) {

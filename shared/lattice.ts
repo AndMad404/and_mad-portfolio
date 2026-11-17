@@ -86,7 +86,9 @@ export function documentLayout(device: LatticeDevice, insetCells: number, conten
 
 /** Complete tracks, not independent fractional grids. Their edges are node lines. */
 export function latticeTracks(lattice: Lattice, width: number, count: number, firstShare?: number): number[] {
-  const cells = Math.round(width / lattice.cell);
+  // Only complete cells fit. Rounding up expands narrow tracks past their
+  // container (e.g. 300px of content becoming a fixed 320px column).
+  const cells = Math.max(0, Math.floor(width / lattice.cell));
   const columns = Math.max(1, Math.min(count, Math.floor((cells + 1) / 2)));
   const available = cells - (columns - 1);
   if (columns === 1) return [cells * lattice.cell];
