@@ -83,6 +83,9 @@
   }
 }
 @media (prefers-reduced-motion: no-preference) {
+  .is-section-energized [data-energy-intro] {
+    animation: energy-text-glow 600ms ease-out 120ms;
+  }
   .service-offer li.is-touch-active::before { animation: service-item-glow 900ms ease-in-out infinite alternate; }
   @media (hover: hover) {
     .service-offer li:hover::before { animation: service-item-glow 900ms ease-in-out infinite alternate; }
@@ -166,7 +169,7 @@
     animation: energy-node-glow 900ms ease-out var(--energy-node-delay, 720ms);
   }
   .public-site .is-section-energized .service-offer li::before {
-    animation: energy-node-glow 900ms ease-out var(--energy-description-delay, 1620ms);
+    animation: energy-node-glow var(--energy-text-duration, 600ms) ease-out var(--energy-description-delay, 1620ms);
   }
   @keyframes energy-node-glow {
     45% { background-color: var(--color-sky); filter: drop-shadow(0 0 6px var(--color-sky)); }

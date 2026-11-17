@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import Home from "../app/routes/home";
 import { advanceEnergy, createEnergySystem, nodePower, linePower, LIGHT_COUNT, stimulateEnergyNode, releaseEnergyPointer, pointerPower, DOCUMENT_BOOT, documentReveal, createDocumentFlows, advanceDocumentFlows } from "../shared/BlueprintEnergy";
-import { centeredBlockScroll, observeEnergySequences, activateSectionEnergy } from "../app/components/PageMotion";
+import { centeredBlockScroll, observeEnergySequences, activateSectionEnergy, orderEnergySequences } from "../app/components/PageMotion";
 import { createBlueprintGraph } from "../app/components/BlueprintBackground";
 import { createHash } from "node:crypto";
 import { createLattice } from "../shared/lattice";
@@ -16,6 +16,8 @@ test("el estándar de energía espera la descripción y no consume entradas inte
     energized = false;
     owner: EnergyElement = this;
     node?: EnergyElement;
+    children: EnergyElement[] = [];
+    style = { setProperty: (_name: string, _value: string) => {} };
     listener?: (event: AnimationEvent) => void;
     constructor(public role: string) {}
     ownerDocument = { querySelector: () => ({ getBoundingClientRect: () => ({ height: 100 }) }) };
@@ -23,6 +25,7 @@ test("el estándar de energía espera la descripción y no consume entradas inte
     matches(selector: string) { return selector === `[data-energy-${this.role}]`; }
     closest() { return this.owner; }
     querySelector() { return this.node; }
+    querySelectorAll() { return this.children; }
     addEventListener(_type: string, callback: (event: AnimationEvent) => void) { this.listener = callback; }
     removeEventListener() { this.listener = undefined; }
   }
@@ -59,6 +62,39 @@ test("el estándar de energía espera la descripción y no consume entradas inte
   cleanup(); cleanup = start(); observer!.report(node, 1);
   assert.equal(row.energized, false, "A complete sequence runs once");
   cleanup(); assert.equal(row.listener, undefined); assert.equal(observer!.observed.size, 0);
+  const group = new EnergyElement("ordered"), first = new EnergyElement("description");
+  first.owner = row;
+  row.children = [first, description]; group.children = [row];
+  delete row.dataset.energyPlayed;
+  cleanup = observeEnergySequences(group as unknown as HTMLElement);
+  observer!.report(node, 1);
+  assert.equal(group.energized, true, "The heading and rows share one activation");
+  row.listener!({ animationName: "energy-text-glow", target: first } as unknown as AnimationEvent);
+  assert.equal(row.dataset.energyPlayed, undefined, "The first list item cannot complete an ordered row");
+  row.listener!({ animationName: "energy-text-glow", target: description } as unknown as AnimationEvent);
+  assert.equal(row.dataset.energyPlayed, "true");
+  cleanup();
+});
+
+test("servicios recorre los dieciséis pasos sin solapar filas ni prestaciones", () => {
+  const timed = () => ({ values: {} as Record<string, string>, style: { setProperty(name: string, value: string) {} } });
+  const rows = [3, 3, 3].map(count => {
+    const row = timed();
+    row.style.setProperty = (name, value) => { row.values[name] = value; };
+    const descriptions = Array.from({ length: count }, () => {
+      const item = timed();
+      item.style.setProperty = (name, value) => { item.values[name] = value; };
+      return item;
+    });
+    return { ...row, descriptions, querySelectorAll: () => descriptions };
+  });
+  orderEnergySequences(rows as unknown as HTMLElement[]);
+  assert.deepEqual(rows.map(row => [row.values["--energy-title-delay"], row.values["--energy-node-delay"],
+    ...row.descriptions.map(item => item.values["--energy-description-delay"])]), [
+    ["720ms", "1320ms", "2220ms", "2820ms", "3420ms"],
+    ["4020ms", "4620ms", "5520ms", "6120ms", "6720ms"],
+    ["7320ms", "7920ms", "8820ms", "9420ms", "10020ms"],
+  ]);
 });
 
 test("el menú activo reproduce solo los nodos de su sección una vez por activación", () => {

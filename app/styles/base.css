@@ -17,6 +17,25 @@
   --section-space: var(--content-space);
   font-size: var(--text-body);
   overflow-wrap: anywhere;
+  /* Keep touch scrolling, without pinch or double-tap page zoom. */
+  touch-action: pan-x pan-y;
+}
+/* Long presses must not select animated copy on touch-first devices. */
+@media (hover: none) and (pointer: coarse) {
+  .public-site,
+  .public-site * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .public-site input,
+  .public-site textarea,
+  .public-site [contenteditable]:not([contenteditable="false"]),
+  .public-site [contenteditable]:not([contenteditable="false"]) * {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
 }
 .public-site .shell {
   max-width: 192rem;

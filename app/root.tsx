@@ -25,7 +25,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="es-CR" style={{ "--grid-unit": `${ENERGY_CELL}px` } as CSSProperties}>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" href="/favicon.svg" />
         <Meta />
         <Links />

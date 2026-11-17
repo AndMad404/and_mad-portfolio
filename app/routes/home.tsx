@@ -13,7 +13,7 @@ export const meta = () =>
   );
 export default function Home() {
   const reduced = useReducedMotion();
-  const services = useRef<HTMLUListElement>(null);
+  const services = useRef<HTMLElement>(null);
   const workHeading = useRef<HTMLDivElement>(null);
   const [activeServiceItem, setActiveServiceItem] = useState<string | null>(null);
   const highlightTouchedService = (event: React.TouchEvent<HTMLUListElement>) => {
@@ -88,15 +88,17 @@ export default function Home() {
       </section>
       <section
         id="servicios"
+        ref={services}
+        data-energy-ordered
         className="section services-section"
         aria-labelledby="services-title"
       >
-        <div className="section-heading" data-reveal>
+        <div className="section-heading">
           <div>
-            <h2 id="services-title">Servicios que puedo ofrecerte.</h2>
+            <h2 id="services-title" data-energy-intro>Servicios que puedo ofrecerte.</h2>
           </div>
         </div>
-        <ul className="service-list" ref={services}
+        <ul className="service-list"
           onTouchStart={highlightTouchedService} onTouchMove={highlightTouchedService}
           onTouchEnd={() => setActiveServiceItem(null)} onTouchCancel={() => setActiveServiceItem(null)}>
           {published.entries

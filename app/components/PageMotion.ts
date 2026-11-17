@@ -1,6 +1,21 @@
 import { useEffect, type RefObject } from "react";
 import { useReducedMotion } from "../../shared/motion";
 
+/** Ordered groups begin with their heading, then finish each row before the next. */
+export function orderEnergySequences(rows: HTMLElement[]) {
+  let cursor = 720;
+  for (const row of rows) {
+    row.style.setProperty("--energy-title-delay", `${cursor}ms`);
+    row.style.setProperty("--energy-node-delay", `${cursor + 600}ms`);
+    cursor += 1500;
+    row.style.setProperty("--energy-description-delay", `${cursor}ms`);
+    for (const description of row.querySelectorAll<HTMLElement>("[data-energy-description]")) {
+      description.style.setProperty("--energy-description-delay", `${cursor}ms`);
+      cursor += 600;
+    }
+  }
+}
+
 /** Project standard for title → connector → description.
  * Mark the wrapper data-energy-sequence, its title data-energy-title, the
  * connector data-energy-node and each description text data-energy-description.
@@ -10,11 +25,21 @@ import { useReducedMotion } from "../../shared/motion";
 export function observeEnergySequences(root: HTMLElement) {
   const rows = root.matches("[data-energy-sequence]") ? [root]
     : [...root.querySelectorAll<HTMLElement>("[data-energy-sequence]")];
+  const ordered = root.matches("[data-energy-ordered]");
+  if (ordered) orderEnergySequences(rows);
   if (typeof IntersectionObserver === "undefined") return () => {};
   const headerHeight = Math.ceil(root.ownerDocument.querySelector(".public-site > .header")?.getBoundingClientRect().height ?? 0);
   const observer = new IntersectionObserver(entries => {
     for (const { target, isIntersecting, intersectionRatio } of entries) {
       if (!isIntersecting || intersectionRatio < .6) continue;
+      if (ordered) {
+        if (rows.some(row => !row.dataset.energyPlayed)) {
+          root.classList.add("is-section-energized");
+          rows.forEach(row => row.classList.add("is-energized"));
+        }
+        observer.unobserve(target);
+        continue;
+      }
       const row = target.closest<HTMLElement>("[data-energy-sequence]");
       if (!row) continue;
       if (!row.dataset.energyPlayed) row.classList.add("is-energized");
@@ -25,15 +50,17 @@ export function observeEnergySequences(root: HTMLElement) {
     if (event.animationName !== "energy-text-glow" || !(event.target instanceof Element) ||
       !event.target.matches("[data-energy-description]")) return;
     const row = event.target.closest<HTMLElement>("[data-energy-sequence]");
+    if (ordered && row && event.target !== [...row.querySelectorAll("[data-energy-description]")].at(-1)) return;
     if (row) row.dataset.energyPlayed = "true";
   };
   for (const row of rows) {
     const node = row.querySelector("[data-energy-node]");
-    if (node) observer.observe(node);
+    if (node && (!ordered || row === rows[0])) observer.observe(node);
     row.addEventListener("animationend", complete);
   }
   return () => {
     observer.disconnect();
+    if (ordered) root.classList.remove("is-section-energized");
     for (const row of rows) {
       row.removeEventListener("animationend", complete);
       row.classList.remove("is-energized");
@@ -60,6 +87,7 @@ export function activateSectionEnergy(root: HTMLElement, sectionId: string, redu
     .find(element => element.id === sectionId);
   if (!section) return;
   const rows = [...section.querySelectorAll<HTMLElement>("[data-energy-sequence]")];
+  if (section.dataset?.energyOrdered !== undefined) orderEnergySequences(rows);
   section.classList.remove("is-section-energized");
   for (const row of rows) {
     row.classList.remove("is-energized");
