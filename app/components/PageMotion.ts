@@ -273,7 +273,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
     const excluded = (target: EventTarget | null) => !!document.querySelector("dialog[open]") ||
       target instanceof Element && !!target.closest("input, textarea, select, [contenteditable], .evidence-track");
     function stops() {
-      const elements = [...container!.querySelectorAll<HTMLElement>(".editorial-hero, .services-section, .work-section, .project-card[data-parallax], #perfil")];
+      const elements = [...container!.querySelectorAll<HTMLElement>(".editorial-hero, .services-section, .work-section, .project-card[data-parallax]")];
       const footer = container!.parentElement?.querySelector(":scope > footer");
       if (footer instanceof HTMLElement) elements.push(footer);
       const first = container!.querySelector(".project-grid > .project-card");

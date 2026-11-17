@@ -115,8 +115,9 @@ for (const route of paths) {
   assert.match(footer, /href="https:\/\/www.linkedin.com\/in\/andres-mad\/"/);
   assert.match(footer, /href="https:\/\/github.com\/AndMad404"/);
   assert.equal([...html.matchAll(/id="contacto"/g)].length, 1, `Un único contacto: ${route}`);
+  assert.doesNotMatch(html, /id="perfil"|href="[^"\s]*#perfil"|Perfil y forma de trabajar/);
   if (route === "/") {
-    for (const section of ["servicios", "proyectos", "perfil", "contacto"]) {
+    for (const section of ["servicios", "proyectos", "contacto"]) {
       assert.ok(
         html.includes(`id="${section}"`),
         `Ancla visible sin JavaScript: ${section}`,

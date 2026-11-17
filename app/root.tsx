@@ -176,7 +176,7 @@ export default function Root() {
             </span>
           </Link>
           <nav aria-label="Principal">
-            {["servicios", "proyectos", "perfil", "contacto"].map((section) => (
+            {["servicios", "proyectos", "contacto"].map((section) => (
               <Link
                 key={section}
                 to={`/#${section}`}

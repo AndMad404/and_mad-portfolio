@@ -77,8 +77,7 @@ test("portada ofrece modales etiquetados y páginas históricas de respaldo", as
     assert.ok(html.indexOf('id="servicios"') < html.indexOf('id="proyectos"'), "Servicios precede a Casos en el orden real del documento");
     assert.doesNotMatch(html, /id="contacto"/, "El contacto pertenece al footer compartido");
     assert.doesNotMatch(html, /UNA FICHA \/ DOS MOMENTOS|Antes de la revisión|Propuesta revisada/);
-    assert.match(html, /id="method-title"/);
-    assert.match(html, /id="perfil"/);
+    assert.doesNotMatch(html, /id="method-title"|id="perfil"/);
     assert.equal([...html.matchAll(/<h1(?:\s|>)/g)].length, 1);
     assert.equal([...html.matchAll(/<dialog(?:\s|>)/g)].length, caseAreas.length);
     assert.doesNotMatch(html, /<dialog[^>]* open(?:=|\s|>)/, "El HTML inicial no abre diálogos no modales");

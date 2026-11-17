@@ -121,10 +121,6 @@ export function pageMeta(title: string, description: string, path: string) {
               inLanguage: siteIdentity.language,
               isPartOf: { "@id": origin + "/#website" },
               about: { "@id": origin + "/#person" },
-              ...(path === "/" ? { hasPart: {
-                "@type": "WebPageElement", "@id": origin + "/#perfil",
-                name: "Perfil y forma de trabajar.", about: { "@id": origin + "/#person" },
-              }} : {}),
               ...(structuredServices(origin, path).length === 1 ? {
                 mainEntity: { "@id": structuredServices(origin, path)[0]!["@id"] },
               } : {}),

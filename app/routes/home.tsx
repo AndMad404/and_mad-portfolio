@@ -73,8 +73,9 @@ export default function Home() {
             <span>Web que funciona.</span>
           </h1>
           <p className="lede">
-            Desarrollo interfaces web, organizo contenido y automatizo tareas.
-            Acá podés conocer mis servicios y la experiencia que aporto a un equipo.
+            Más de siete años entre desarrollo web, contenido empresarial y calidad de datos.
+            Desarrollo interfaces y automatizo tareas en colaboración con QA, Marketing y desarrollo,
+            también con clientes en inglés.
           </p>
           <div className="hero-actions">
             <a className="button" href="https://github.com/AndMad404" target="_blank" rel="noopener noreferrer">
@@ -94,8 +95,10 @@ export default function Home() {
         aria-labelledby="services-title"
       >
         <div className="section-heading">
-          <div>
-            <h2 id="services-title" data-energy-intro>Servicios que puedo ofrecerte.</h2>
+          <div data-energy-intro>
+            <h2 id="services-title">Servicios que puedo ofrecerte.</h2>
+            <p>Acordamos el alcance, construyo en partes y valido cada entrega con criterios claros.
+              Documento decisiones y comparto conocimiento para que el equipo pueda continuar.</p>
           </div>
         </div>
         <ul className="service-list"
@@ -166,37 +169,6 @@ export default function Home() {
             if (location.state?.entryModal) navigate(-1);
             else navigate(`/${location.search}#proyectos`, { replace: true, preventScrollReset: true });
           }} />)}
-      </section>
-      <section id="perfil" className="section profile-method" aria-labelledby="profile-title">
-        <header className="profile-method-intro" data-reveal>
-          <h2 id="profile-title">Perfil y forma de trabajar.</h2>
-          <p>Más de siete años entre desarrollo web, contenido empresarial y calidad de datos.
-            Conecto el consumo, la transformación, la validación y la presentación de información.</p>
-        </header>
-        <div className="profile-context">
-          <article aria-labelledby="collaboration-title" data-reveal>
-            <h3 id="collaboration-title">Conectar necesidades y equipos.</h3>
-            <p>He trabajado con QA, Marketing, desarrollo y gestión de proyectos, traduciendo requisitos
-              a tareas técnicas y comunicando riesgos antes de las entregas, también en reuniones con clientes en inglés.</p>
-          </article>
-          <article aria-labelledby="knowledge-title" data-reveal>
-            <h3 id="knowledge-title">Compartir conocimiento.</h3>
-            <p>Me he incorporado a sistemas existentes, documentado procedimientos y capacitado a equipos.
-              Busco que los hallazgos de una tarea ayuden a resolver la siguiente.</p>
-          </article>
-        </div>
-        <section className="profile-process" aria-labelledby="method-title">
-          <header>
-            <h3 id="method-title">Del alcance a la entrega.</h3>
-            <p>El trabajo empieza con un objetivo concreto y termina con una entrega que se puede revisar.</p>
-          </header>
-          <ol className="delivery-steps">
-            <li><h4>Acordar el alcance.</h4><p>Definir quién usará la solución, qué necesita resolver y cómo comprobaremos el resultado.</p></li>
-            <li><h4>Construir en partes.</h4><p>Preparar versiones revisables y contrastarlas con el alcance antes de ampliar el trabajo.</p></li>
-            <li><h4>Comprobar con criterios claros.</h4><p>Probar las tareas acordadas, registrar problemas y corregir lo que impida completar la entrega.</p></li>
-            <li><h4>Dejar claro cómo continuar.</h4><p>Explicar el uso, documentar decisiones y distinguir lo resuelto de los siguientes pasos.</p></li>
-          </ol>
-        </section>
       </section>
     </>
   );

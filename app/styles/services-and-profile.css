@@ -65,7 +65,8 @@
   content: "";
   position: absolute;
   left: 0;
-  top: 50%;
+  /* Stacked services: align the node with the first text line. */
+  top: .7em;
   transform: translateY(-50%);
   width: var(--content-node-size);
   height: var(--content-node-size);
@@ -157,8 +158,6 @@
     --energy-title-delay: calc(var(--energy-node-delay) + var(--energy-node-duration));
     --energy-description-delay: calc(var(--energy-title-delay) + var(--energy-text-duration));
   }
-  /* Center the marker on the first line, not the whole multiline item. */
-  .services-section .service-offer li::before { top: .7em; }
   @media (prefers-reduced-motion: no-preference) {
     .public-site .services-section.is-section-energized #services-title {
       animation: energy-text-glow 600ms ease-out 120ms;
@@ -171,6 +170,7 @@
   }
 }
 @media (min-width: 64rem) {
+  .service-offer li::before { top: 50%; }
   .public-site .service-row {
     grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     grid-template-areas: "heading description";

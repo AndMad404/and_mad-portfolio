@@ -232,19 +232,20 @@ test("selección comercial agrupa CMS y herramientas sin destacar proyectos en d
   } finally { router.dispose(); }
 });
 
-test("perfil y método forman una sección con encabezados y proceso semánticos", () => {
+test("Home integra trayectoria y método sin un bloque separado de Perfil", () => {
   const router = createMemoryRouter([{ path: "/", element: createElement(Home) }]);
   try {
     const html = renderToStaticMarkup(createElement(RouterProvider, { router }));
-    assert.equal([...html.matchAll(/id="perfil"/g)].length, 1);
-    assert.match(html, /<section id="perfil" class="section profile-method" aria-labelledby="profile-title">/);
-    assert.doesNotMatch(html, /class="section method-section"|UNA FORMA DE TRABAJAR|04 \/ PERFIL/);
-    assert.match(html, /<h2 id="profile-title">Perfil y forma de trabajar\.<\/h2>/);
-    assert.match(html, /<h3 id="method-title">Del alcance a la entrega\.<\/h3>/);
-    const steps = html.match(/<ol class="delivery-steps">([\s\S]*?)<\/ol>/)![1]!;
-    assert.equal([...steps.matchAll(/<li>/g)].length, 4);
-    assert.equal([...steps.matchAll(/<h4>/g)].length, 4);
-    assert.match(html, /<ul class="service-list">/);
+    assert.doesNotMatch(html, /id="perfil"|id="method-title"|class="delivery-steps"/);
+    const hero = html.slice(0, html.indexOf('id="servicios"'));
+    assert.match(hero, /Más de siete años/);
+    assert.match(hero, /QA, Marketing y desarrollo/);
+    assert.match(hero, /clientes en inglés/);
+    const services = html.slice(html.indexOf('id="servicios"'), html.indexOf('id="proyectos"'));
+    assert.match(services, /Acordamos el alcance/);
+    assert.match(services, /valido cada entrega con criterios claros/);
+    assert.match(services, /Documento decisiones y comparto conocimiento/);
+    assert.match(services, /<ul class="service-list">/);
   } finally { router.dispose(); }
 });
 
