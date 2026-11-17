@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { published, pageMeta, homeSeo, caseAreas, resolveCaseFragment, standaloneCaseFragmentPath } from "../content";
 import { entryPath } from "../../shared/contracts";
@@ -101,9 +101,10 @@ export default function Home() {
           onTouchEnd={() => setActiveServiceItem(null)} onTouchCancel={() => setActiveServiceItem(null)}>
           {published.entries
             .filter((entry) => entry.kind === "service")
-            .map((entry) => (
+            .map((entry, index) => (
               <li className="service-disclosure" key={entry.id}>
-                <div className="service-row" data-energy-sequence id={`resumen-servicio-${entry.slug}`}>
+                <div className="service-row" data-energy-sequence id={`resumen-servicio-${entry.slug}`}
+                  style={{ "--service-sequence-index": index } as CSSProperties}>
                   <div className="service-heading">
                     <h3 data-energy-title>{entry.title}</h3>
                     <span className="service-node" data-energy-node aria-hidden="true"><i /><i /><i className="service-node-traveller" /></span>

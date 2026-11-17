@@ -148,6 +148,18 @@ test("columnas y gaps caben en el grid, incluidas las proporciones de portada y 
   }
 });
 
+test("las pistas nunca exceden el ancho disponible entre celdas completas", () => {
+  const grid = createLattice({ width: 1000, height: 5000, dpr: 1.25 });
+  for (const width of [0, 20, 39, 40, 280, 299, 300, 319, 320, 359, 767, 1001]) {
+    for (const count of [1, 2, 3, 4]) {
+      const tracks = latticeTracks(grid, width, count, .6);
+      const occupied = tracks.reduce((sum, track) => sum + track, 0) + (tracks.length - 1) * grid.cell;
+      assert.ok(occupied <= width, `${width}px, ${count} columnas: ${occupied}px`);
+      assert.ok(tracks.every(track => track >= 0 && track % grid.cell === 0));
+    }
+  }
+});
+
 test("el puntero usa medidas del canvas y excluye el scrollbar también con escalado", () => {
   for (const scale of [1, 1.25, 2]) {
     const geometry = {

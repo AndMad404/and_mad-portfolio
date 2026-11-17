@@ -125,9 +125,46 @@
   left: 0;
   opacity: 0;
 }
-@media (max-width: 47.99rem) and (orientation: portrait) {
+@media (max-width: 47.99rem) {
   .public-site .service-row {
-    grid-template-areas: "node" "title" "description";
+    grid-template-areas: "heading" "description";
+  }
+  .service-heading {
+    grid-area: heading;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-quarter);
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: center;
+  }
+  /* In this stacked layout the section title leads, then each connector,
+     service name and its list run in order from top to bottom. */
+  .service-heading {
+    grid-template-areas: "node" "title";
+  }
+  .public-site .service-heading h3 { grid-area: title; }
+  .service-heading .service-node { grid-area: node; }
+  .public-site .services-section .service-row {
+    --service-list-glow-duration: var(--energy-node-duration);
+    --service-step-duration: calc(var(--energy-node-duration) + var(--energy-text-duration) + var(--service-list-glow-duration));
+    --service-sequence-offset: calc(var(--service-sequence-index, 0) * var(--service-step-duration));
+    --energy-node-delay: calc(720ms + var(--service-sequence-offset));
+    --energy-title-delay: calc(var(--energy-node-delay) + var(--energy-node-duration));
+    --energy-description-delay: calc(var(--energy-title-delay) + var(--energy-text-duration));
+  }
+  /* Center the marker on the first line, not the whole multiline item. */
+  .services-section .service-offer li::before { top: .7em; }
+  @media (prefers-reduced-motion: no-preference) {
+    .public-site .services-section.is-section-energized #services-title {
+      animation: energy-text-glow 600ms ease-out 120ms;
+    }
+    /* Individual intersection events must not start a row before the section. */
+    .public-site .services-section:not(.is-section-energized) .service-row.is-energized
+      :is([data-energy-title], [data-energy-description], [data-energy-node] .service-node-traveller) {
+      animation-name: none;
+    }
   }
 }
 @media (min-width: 64rem) {
@@ -166,7 +203,7 @@
     animation: energy-node-glow 900ms ease-out var(--energy-node-delay, 720ms);
   }
   .public-site .is-section-energized .service-offer li::before {
-    animation: energy-node-glow 900ms ease-out var(--energy-description-delay, 1620ms);
+    animation: energy-node-glow var(--service-list-glow-duration, 900ms) ease-out var(--energy-description-delay, 1620ms);
   }
   @keyframes energy-node-glow {
     45% { background-color: var(--color-sky); filter: drop-shadow(0 0 6px var(--color-sky)); }
