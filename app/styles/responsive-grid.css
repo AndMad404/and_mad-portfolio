@@ -3,10 +3,34 @@
 .public-site { --grid-inset-cells: .5; }
 @media (min-width: 48rem) { .public-site { --grid-inset-cells: 1; } }
 @media (min-width: 80rem) { .public-site { --grid-inset-cells: 2; } }
-.public-site .header .shell { display: grid; grid-template-columns: minmax(0, 1fr); }
+.public-site .header .shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-eighth);
+  min-height: 4.5rem;
+  padding-inline: max(var(--space-half), env(safe-area-inset-left)) max(var(--space-half), env(safe-area-inset-right));
+}
+.public-site .header .brand {
+  width: max-content;
+  font-size: clamp(1rem, 4.5vw, 1.5rem);
+  gap: var(--space-eighth);
+}
+.public-site .header nav {
+  width: auto;
+  justify-self: end;
+  flex-wrap: nowrap;
+  gap: var(--space-eighth);
+}
+.public-site .header nav a {
+  font-size: clamp(.75rem, 2.8vw, .875rem);
+  white-space: nowrap;
+}
 @media (min-width: 48rem) {
-  .public-site .header .shell { grid-template-columns: auto minmax(0, 1fr); gap: var(--space-1); }
-  .public-site .header nav { width: auto; justify-self: end; gap: var(--space-1); }
+  .public-site .header .shell { gap: var(--space-1); padding-inline: var(--gutter); }
+  .public-site .header .brand { font-size: clamp(1.5rem, 1.2rem + .5vw, 2.5rem); gap: var(--space-quarter); }
+  .public-site .header nav { gap: var(--space-1); }
+  .public-site .header nav a { font-size: var(--text-ui); }
 }
 .public-site :is(.hero-copy, .project-grid, .work-type-body, .profile-layout, .service-row) { --grid-track-count: 1; }
 @media (min-width: 48rem) { .public-site :is(.profile-context, .delivery-steps) { --grid-track-count: 2; } }
