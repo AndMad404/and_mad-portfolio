@@ -21,6 +21,27 @@ import { BlueprintWindows } from "./components/BlueprintWindows";
 import "../shared/tokens.css";
 import "./public.css";
 export function Layout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Some touch browsers ignore the viewport zoom limit. Keep one-finger
+    // scrolling native, but cancel cancellable multi-touch and Safari gestures.
+    const preventPinch = (event: TouchEvent) => {
+      if (event.touches.length > 1 && event.cancelable) event.preventDefault();
+    };
+    const preventGesture = (event: Event) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    const options = { passive: false, capture: true };
+    document.addEventListener("touchstart", preventPinch, options);
+    document.addEventListener("touchmove", preventPinch, options);
+    document.addEventListener("gesturestart", preventGesture, options);
+    document.addEventListener("gesturechange", preventGesture, options);
+    return () => {
+      document.removeEventListener("touchstart", preventPinch, true);
+      document.removeEventListener("touchmove", preventPinch, true);
+      document.removeEventListener("gesturestart", preventGesture, true);
+      document.removeEventListener("gesturechange", preventGesture, true);
+    };
+  }, []);
   return (
     <html lang="es-CR" style={{ "--grid-unit": `${ENERGY_CELL}px` } as CSSProperties}>
       <head>
