@@ -210,7 +210,6 @@
   padding: var(--space-quarter) var(--space-quarter);
   min-height: 44px;
   font-size: var(--text-ui);
-  font-weight: 400;
 }
 .public-site .comparison-toolbar button[aria-pressed="true"] {
   color: white;

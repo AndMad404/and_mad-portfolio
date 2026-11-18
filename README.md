@@ -1,6 +1,6 @@
 # and_mad — portafolio
 
-Portafolio profesional desarrollado con React, TypeScript, React Router y Vite. El sitio público genera páginas HTML prerenderizadas, con contenido estructurado, metadatos SEO y rutas individuales para proyectos y servicios.
+Portafolio profesional desarrollado con React, TypeScript, React Router y Vite. El sitio público prerenderiza las portadas en español (`/`) e inglés (`/en/`), con metadatos SEO y secciones de Servicios, Casos y Contacto. Las URL históricas de casos y servicios redirigen a la sección correspondiente.
 
 ## Desarrollo del sitio público
 
@@ -18,7 +18,7 @@ npm run typecheck
 npm run build
 ```
 
-El contenido publicado se obtiene de `content/published.json`. La salida para despliegue se genera en `build/site/client/`; `dist/` corresponde a un prototipo anterior y no debe desplegarse.
+La portada toma los servicios y el registro de entradas de `content/published.json`. Las historias y los resultados de las cuatro áreas se redactan en `app/content.ts`. La salida para despliegue se genera en `build/site/client/`. Excluye `dist/` del despliegue.
 
 ## Estructura del sitio
 
@@ -26,7 +26,7 @@ El contenido publicado se obtiene de `content/published.json`. La salida para de
 - `shared/`: componentes, estilos y contratos compartidos.
 - `content/published.json`: contenido público aprobado.
 - `public/`: recursos estáticos.
-- `server/public.ts`: Worker público para entregar archivos y responder 404.
+- `server/public.ts`: Worker público para entregar archivos, redirigir fichas retiradas y responder 404.
 - `react-router.config.ts`, `vite.config.ts` y `wrangler.site.jsonc`: configuración de compilación y despliegue.
 
 ## Pruebas por tipo

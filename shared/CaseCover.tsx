@@ -9,9 +9,11 @@ export function coverName(entry: Entry) {
 export function CaseCover({
   entry,
   transition = false,
+  english = false,
 }: {
   entry: Entry;
   transition?: boolean;
+  english?: boolean;
 }) {
   const cms = entry.id === "operacion-cms";
   const web = entry.id === "sitios-wordpress";
@@ -21,7 +23,7 @@ export function CaseCover({
       style={{ viewTransitionName: transition ? coverName(entry) : "none" }}
     >
       {!cms && !web && <BlueprintBackground variant="cover" />}
-      <span className="cover-caption">Ilustración conceptual</span>
+      <span className="cover-caption">{english ? "Concept illustration" : "Ilustración conceptual"}</span>
       <div className="cover-drawing" aria-hidden="true">
         {cms ? (
           <div className="cms-window">
@@ -31,24 +33,24 @@ export function CaseCover({
             </div>
             <div className="cms-table">
               <div>
-                <span>CAMPO</span>
-                <span>REVISIÓN</span>
+                <span>{english ? "FIELD" : "CAMPO"}</span>
+                <span>{english ? "REVIEW" : "REVISIÓN"}</span>
               </div>
               <div>
-                <strong>Título</strong>
-                <span>Contenido</span>
+                <strong>{english ? "Title" : "Título"}</strong>
+                <span>{english ? "Content" : "Contenido"}</span>
               </div>
               <div>
-                <strong>Imagen</strong>
-                <span>Descripción</span>
+                <strong>{english ? "Image" : "Imagen"}</strong>
+                <span>{english ? "Description" : "Descripción"}</span>
               </div>
               <div>
-                <strong>Enlace</strong>
-                <span>Destino</span>
+                <strong>{english ? "Link" : "Enlace"}</strong>
+                <span>{english ? "Destination" : "Destino"}</span>
               </div>
             </div>
             <div className="cms-note">
-              Contenido → revisión → entrega <span>↗</span>
+              {english ? "Content → review → release" : "Contenido → revisión → entrega"} <span>↗</span>
             </div>
           </div>
         ) : web ? (
@@ -92,17 +94,17 @@ export function CaseCover({
           </div>
         ) : (
           <div className="system-drawing">
-            <span className="system-label">{entry.tags[0] || "Contenido"}</span>
+            <span className="system-label">{entry.tags[0] || (english ? "Content" : "Contenido")}</span>
             <div className="system-nodes">
-              <span>Entrada</span>
+              <span>{english ? "Input" : "Entrada"}</span>
               <i>→</i>
-              <span>Proceso</span>
+              <span>{english ? "Process" : "Proceso"}</span>
               <i>→</i>
-              <span>Salida</span>
+              <span>{english ? "Output" : "Salida"}</span>
             </div>
             <div className="system-rule" />
             <span className="system-label">
-              DECISIONES / ALCANCE / EVIDENCIA
+              {english ? "DECISIONS / SCOPE / EVIDENCE" : "DECISIONES / ALCANCE / EVIDENCIA"}
             </span>
           </div>
         )}

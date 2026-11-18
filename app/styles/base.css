@@ -87,6 +87,12 @@ html, body {
 .public-site .header nav a[aria-current] {
   text-decoration: underline;
 }
+.public-site .header nav a,
+.public-site .button,
+.public-site .text-link,
+.public-site button {
+  font-weight: 700;
+}
 .public-site a,
 .public-site button {
   -webkit-tap-highlight-color: #87ceeb55;
@@ -149,7 +155,6 @@ html, body {
   min-height: 48px;
   padding: var(--space-quarter) var(--space-half);
   font-size: var(--text-ui);
-  font-weight: 500;
   transition: background-color 160ms, box-shadow 160ms;
   max-width: 100%;
 }

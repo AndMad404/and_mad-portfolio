@@ -1,8 +1,16 @@
+import { retiredPublicDestination } from "../app/content";
+
 export default {
   async fetch(request: Request, env: { ASSETS: Fetcher }) {
     const url = new URL(request.url);
     if (!["GET", "HEAD"].includes(request.method))
       return new Response(null, { status: 405 });
+    const destination = retiredPublicDestination(url.pathname);
+    if (destination) {
+      const target = new URL(destination, url);
+      target.search = url.search;
+      return Response.redirect(target, 301);
+    }
     let response = await env.ASSETS.fetch(request);
     if (response.status === 404) {
       response = new Response(

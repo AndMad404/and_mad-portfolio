@@ -18,9 +18,12 @@ import { useReducedMotion } from "../shared/motion";
 import { usePageMotion, useBlockNavigation, visibleNavigationSection, activateSectionEnergy } from "./components/PageMotion";
 import { BlueprintBackground } from "./components/BlueprintBackground";
 import { BlueprintWindows } from "./components/BlueprintWindows";
+import { LanguagePicker } from "./components/LanguagePicker";
+import { alternateLanguagePath, englishHomePath, isEnglishHome, isEnglishPath } from "./content";
 import "../shared/tokens.css";
 import "./public.css";
 export function Layout({ children }: { children: React.ReactNode }) {
+  const english = isEnglishPath(useLocation().pathname);
   useEffect(() => {
     // Some touch browsers ignore the viewport zoom limit. Keep one-finger
     // scrolling native, but cancel cancellable multi-touch and Safari gestures.
@@ -43,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     };
   }, []);
   return (
-    <html lang="es-CR" style={{ "--grid-unit": `${ENERGY_CELL}px` } as CSSProperties}>
+    <html lang={english ? "en" : "es-CR"} style={{ "--grid-unit": `${ENERGY_CELL}px` } as CSSProperties}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -61,6 +64,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 export default function Root() {
   const location = useLocation();
+  const english = isEnglishPath(location.pathname);
+  const homePath = english ? englishHomePath : "/";
+  const atHome = isEnglishHome(location.pathname) || location.pathname === "/";
   // URL fragments never reach the server. Apply them only after hydration so
   // the first client render preserves the prerendered attributes.
   const [hydrated, setHydrated] = useState(false);
@@ -74,7 +80,7 @@ export default function Root() {
   useDocumentGrid(main);
   const [visibleSection, setVisibleSection] = useState("");
   useEffect(() => {
-    if (location.pathname !== "/" || !main.current) return;
+    if (!atHome || !main.current) return;
     let frame: number | null = null;
     function update() {
       frame = null;
@@ -105,14 +111,30 @@ export default function Root() {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [location.pathname]);
+  }, [atHome, location.pathname]);
   const modalSection = /^#servicio-/.test(renderedHash) ? "servicios"
     : /^#caso-/.test(renderedHash) ? "proyectos" : null;
   const activeMenuSection = modalSection ?? visibleSection;
+  const navigationSections = [
+    ["servicios", "Servicios", "Services"],
+    ["proyectos", "Casos", "Cases"],
+    ["contacto", "Contacto", "Contact"],
+  ] as const;
+  const languageSection = navigationSections.find(([id]) =>
+    renderedHash === `#${id}` || location.pathname.startsWith(`/${id}/`) ||
+    (id === "proyectos" && english && !atHome) ||
+    (id === "servicios" && /^#(?:servicio|resumen-servicio)-/.test(renderedHash)) ||
+    (id === "proyectos" && /^#(?:area|caso|resumen-area)-/.test(renderedHash)),
+  )?.[0];
+  const alternateHome = english ? "/" : englishHomePath;
+  const alternatePage = alternateLanguagePath(location.pathname);
+  const languageDestination = atHome || !alternatePage
+    ? alternateHome + (languageSection ? `#${languageSection}` : "")
+    : alternatePage;
   useEffect(() => {
     if (main.current) activateSectionEnergy(main.current.parentElement ?? main.current,
-      location.pathname === "/" ? activeMenuSection : "", reduced);
-  }, [activeMenuSection, location.pathname, reduced]);
+      atHome ? activeMenuSection : "", reduced);
+  }, [activeMenuSection, atHome, location.pathname, reduced]);
   usePageMotion(main, location.pathname);
   useBlockNavigation(main, location.pathname);
   const first = useRef(true);
@@ -159,15 +181,15 @@ export default function Root() {
       <BlueprintBackground />
       <BlueprintWindows root={main} pathname={location.pathname} />
       <a className="skip" href="#main">
-        Saltar al contenido
+        {english ? "Skip to content" : "Saltar al contenido"}
       </a>
       <header className="header" ref={header}>
         <div className="shell">
           <Link
             className="brand"
-            to="/"
+            to={homePath}
             viewTransition={!reduced}
-            aria-label="Andrés Madrigal — And_Mad — inicio"
+            aria-label={english ? "Andrés Madrigal — And_Mad — home" : "Andrés Madrigal — And_Mad — inicio"}
           >
             <span className="pixel-mark" aria-hidden="true" />
             <span className="brand-names" aria-hidden="true">
@@ -196,20 +218,21 @@ export default function Root() {
               ))}
             </span>
           </Link>
-          <nav aria-label="Principal">
-            {["servicios", "proyectos", "contacto"].map((section) => (
+          <nav aria-label={english ? "Main" : "Principal"}>
+            {navigationSections.map(([section, spanishLabel, englishLabel]) => (
               <Link
                 key={section}
-                to={`/#${section}`}
+                to={`${homePath}#${section}`}
                 viewTransition={!reduced}
                 onClick={event => {
                   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                  if (location.pathname === "/" && activeMenuSection === section && main.current)
+                  if (atHome && activeMenuSection === section && main.current)
                     activateSectionEnergy(main.current.parentElement ?? main.current, section, reduced, true);
                 }}
                 aria-current={
-                  (location.pathname === "/" ? activeMenuSection === section :
+                  (atHome ? activeMenuSection === section :
                   location.pathname.startsWith(`/${section}/`) ||
+                  (english && section === "proyectos") ||
                   renderedHash === `#${section}` ||
                   (section === "proyectos" && /^#(?:caso|resumen)-/.test(renderedHash) && !renderedHash.startsWith("#resumen-servicio-")) ||
                   (section === "servicios" && /^#(?:servicio|resumen-servicio)-/.test(renderedHash)))
@@ -217,10 +240,10 @@ export default function Root() {
                     : undefined
                 }
               >
-                <span className="nav-label">
-                  {section === "proyectos"
-                    ? "Casos"
-                    : section[0]!.toUpperCase() + section.slice(1)}
+                <span className="nav-label nav-section-label">
+                  <span>{english ? englishLabel : spanishLabel}</span>
+                  <span className="nav-label-measure" aria-hidden="true">{spanishLabel}</span>
+                  <span className="nav-label-measure" aria-hidden="true">{englishLabel}</span>
                   <svg className="nav-node" viewBox="0 0 100 10" fill="none" aria-hidden="true" focusable="false">
                     <path d="M3 5H97" />
                     <circle cx="3" cy="5" r="2" /><circle cx="97" cy="5" r="2" />
@@ -231,35 +254,39 @@ export default function Root() {
                 </span>
               </Link>
             ))}
+            <LanguagePicker to={languageDestination} />
           </nav>
         </div>
       </header>
       <div className="navigation-status" role="status">
-        {navigation.state !== "idle" ? "Abriendo página…" : ""}
+        {navigation.state !== "idle" ? (english ? "Opening page…" : "Abriendo página…") : ""}
       </div>
       <main id="main" className="shell" ref={main}>
         <Outlet />
       </main>
       <footer id="contacto" className="shell contact-section" aria-labelledby="contact-title">
-        <p className="eyebrow">CONTACTO</p>
+        <p className="eyebrow">{english ? "CONTACT" : "CONTACTO"}</p>
         <h2 id="contact-title">
-          Hablemos de tu proyecto<br />o tu equipo<span>.</span>
+          {english ? "Let’s talk about your project" : "Hablemos de tu proyecto"}<br />
+          {english ? "or your team" : "o tu equipo"}<span>.</span>
         </h2>
-        <p>Contame qué necesitás resolver o qué perfil estás buscando.</p>
+        <p>{english ? "Tell me what you need to solve or what role you’re hiring for." :
+          "Contame qué necesitás resolver o qué perfil estás buscando."}</p>
         <div className="contact-links">
           <a className="button" href="https://www.linkedin.com/in/andres-mad/" target="_blank" rel="noopener noreferrer">
-            Contactar por LinkedIn ↗
+            {english ? "Contact me on LinkedIn ↗" : "Contactar por LinkedIn ↗"}
           </a>
           <a className="button button-secondary" href="https://github.com/AndMad404" target="_blank" rel="noopener noreferrer">
-            Ver GitHub ↗
+            {english ? "View GitHub ↗" : "Ver GitHub ↗"}
           </a>
         </div>
         <div className="footer-signature">
-          <Link className="brand" to="/" viewTransition={!reduced}>and_mad</Link>
-          <span>Desarrollo web, contenido y calidad · Costa Rica</span>
+          <Link className="brand" to={homePath} viewTransition={!reduced}>and_mad</Link>
+          <span>{english ? "Web development, content and quality · Costa Rica" :
+            "Desarrollo web, contenido y calidad · Costa Rica"}</span>
         </div>
       </footer>
-      <button className="back-to-top" type="button" aria-label="Volver al inicio"
+      <button className="back-to-top" type="button" aria-label={english ? "Back to top" : "Volver al inicio"}
         onClick={() => {
           window.scrollTo({ top: 0, behavior: reduced ? "instant" : "smooth" });
           header.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });

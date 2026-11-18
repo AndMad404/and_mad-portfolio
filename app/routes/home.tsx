@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { published, pageMeta, homeSeo, caseAreas, resolveCaseFragment, standaloneCaseFragmentPath } from "../content";
-import { entryPath } from "../../shared/contracts";
-import { useReducedMotion } from "../../shared/motion";
-import { AreaModal } from "../components/ProjectCard";
+import { useLocation, useNavigate } from "react-router";
+import { published, pageMeta, homeSeo, caseAreas, resolveCaseFragment } from "../content";
+import { AreaCard } from "../components/ProjectCard";
 import { useEnergySequence } from "../components/PageMotion";
 export const meta = () =>
   pageMeta(
@@ -12,7 +10,6 @@ export const meta = () =>
     "/",
   );
 export default function Home() {
-  const reduced = useReducedMotion();
   const services = useRef<HTMLElement>(null);
   const workHeading = useRef<HTMLDivElement>(null);
   const [activeServiceItem, setActiveServiceItem] = useState<string | null>(null);
@@ -55,9 +52,10 @@ export default function Home() {
   const cases = published.entries.filter(entry => entry.kind === "case");
   const selected = resolveCaseFragment(hash);
   useEffect(() => {
-    const path = standaloneCaseFragmentPath(hash);
-    if (path) navigate(path, { replace: true });
-  }, [hash, navigate]);
+    if (hash.startsWith("#caso-") && !selected) {
+      navigate(`/${location.search}#proyectos`, { replace: true });
+    }
+  }, [hash, location.search, navigate, selected]);
   return (
     <>
       <section className="hero editorial-hero" aria-labelledby="hero-title">
@@ -137,38 +135,12 @@ export default function Home() {
           </div>
           <span className="service-node work-heading-node" data-energy-node aria-hidden="true"><i /><i /><i className="service-node-traveller" /></span>
           <p data-energy-description>
-            Casos de desarrollo de interfaces e integraciones, calidad de software y datos, y automatización de procesos.
+            Casos de desarrollo web, calidad de datos y automatización. En una entrevista puedo explicar las decisiones y el contexto de cada trabajo.
           </p>
         </div>
         <div className="project-grid" id="project-results">
-          {caseAreas.map(area => {
-            return <article className="project-card work-type" data-parallax="folder" key={area.id}>
-              <h3 className="work-type-title">{area.title}</h3>
-              <div className="work-type-body">
-              <div className="work-type-window" aria-hidden="true" />
-              <div className="work-type-content">
-                <p>{area.introduction}</p>
-                <Link id={`resumen-area-${area.id}`} className="button"
-                  to={entryPath(cases.find(entry => entry.id === area.entryId)!)} aria-label={`Conocer más: ${area.label}`}
-                  aria-haspopup="dialog" aria-controls={area.modalId}
-                  onClick={event => {
-                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                    event.preventDefault();
-                    navigate(`/${location.search}#area-${area.id}`, {
-                      preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true },
-                    });
-                  }}>Conocer más</Link>
-              </div>
-              </div>
-            </article>;
-          })}
+          {caseAreas.map(area => <AreaCard key={area.id} area={area} entries={cases} selected={selected} />)}
         </div>
-        {caseAreas.map(area => <AreaModal key={area.id} area={area} entries={cases}
-          open={selected?.area.id === area.id} experienceId={selected?.area.id === area.id ? selected.experienceId : undefined}
-          onRequestClose={() => {
-            if (location.state?.entryModal) navigate(-1);
-            else navigate(`/${location.search}#proyectos`, { replace: true, preventScrollReset: true });
-          }} />)}
       </section>
     </>
   );

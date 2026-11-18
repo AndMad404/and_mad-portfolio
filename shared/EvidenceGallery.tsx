@@ -2,9 +2,10 @@ import { useId, useRef } from "react";
 import { media, type Entry } from "./contracts";
 import { useReducedMotion } from "./motion";
 
-export function EvidenceGallery({ evidence, headingLevel = 2 }: {
+export function EvidenceGallery({ evidence, headingLevel = 2, english = false }: {
   evidence: Entry["evidence"];
   headingLevel?: 2 | 3;
+  english?: boolean;
 }) {
   const Heading = headingLevel === 3 ? "h3" : "h2";
   const id = useId();
@@ -22,12 +23,12 @@ export function EvidenceGallery({ evidence, headingLevel = 2 }: {
   return (
     <section className="evidence-gallery" aria-labelledby={`${id}-title`}>
       <div className="evidence-heading">
-        <Heading id={`${id}-title`}>Evidencia y referencias</Heading>
+        <Heading id={`${id}-title`}>{english ? "Evidence and references" : "Evidencia y referencias"}</Heading>
         {evidence.length > 1 && (
-          <div className="evidence-controls" aria-label="Desplazar evidencias">
+          <div className="evidence-controls" aria-label={english ? "Scroll references" : "Desplazar evidencias"}>
             <button
               type="button"
-              aria-label="Evidencia anterior"
+              aria-label={english ? "Previous reference" : "Evidencia anterior"}
               aria-controls={id}
               onClick={() => move(-1)}
             >
@@ -35,7 +36,7 @@ export function EvidenceGallery({ evidence, headingLevel = 2 }: {
             </button>
             <button
               type="button"
-              aria-label="Evidencia siguiente"
+              aria-label={english ? "Next reference" : "Evidencia siguiente"}
               aria-controls={id}
               onClick={() => move(1)}
             >
@@ -49,7 +50,7 @@ export function EvidenceGallery({ evidence, headingLevel = 2 }: {
         id={id}
         className="evidence-track"
         tabIndex={evidence.length > 1 ? 0 : undefined}
-        aria-label="Referencias del caso; desplazamiento horizontal"
+        aria-label={english ? "Case references, horizontal scroll" : "Referencias del caso; desplazamiento horizontal"}
         onKeyDown={(event) => {
           if (event.target !== event.currentTarget) return;
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
@@ -61,7 +62,7 @@ export function EvidenceGallery({ evidence, headingLevel = 2 }: {
         {evidence.map((item, index) => (
           <li key={item.id} className="evidence-item">
             <span className="evidence-number">
-              {String(index + 1).padStart(2, "0")} / REFERENCIA
+              {String(index + 1).padStart(2, "0")} / {english ? "REFERENCE" : "REFERENCIA"}
             </span>
             {item.imageId &&
               media
@@ -70,7 +71,7 @@ export function EvidenceGallery({ evidence, headingLevel = 2 }: {
                   <img
                     key={image.id}
                     src={image.src}
-                    alt={image.alt}
+                    alt={english ? "and_mad: web development and content" : image.alt}
                     width="1200"
                     height="630"
                     loading="lazy"

@@ -1,9 +1,5 @@
-import { readFile, writeFile, unlink } from "node:fs/promises";
-import { snapshotSchema, entryPath } from "../shared/contracts";
-import { siteIdentity } from "../app/content";
-const snapshot = snapshotSchema.parse(
-  JSON.parse(await readFile("content/published.json", "utf8")),
-);
+import { writeFile, unlink } from "node:fs/promises";
+import { caseAreas, areaStories, publicPaths, published as snapshot, siteIdentity } from "../app/content";
 const origin = process.env.SITE_ORIGIN || "";
 const indexable = process.env.INDEXABLE === "true";
 if (indexable && !origin)
@@ -13,7 +9,7 @@ if (
   (new URL(origin).origin !== origin || !origin.startsWith("https://"))
 )
   throw new Error("SITE_ORIGIN debe ser un origen HTTPS");
-const paths = ["/", ...snapshot.entries.map(entryPath)];
+const paths = publicPaths;
 await writeFile(
   "build/site/client/robots.txt",
   indexable
@@ -26,7 +22,7 @@ await writeFile(
 );
 await writeFile(
   "build/site/client/llms.txt",
-  `# ${siteIdentity.name} | ${siteIdentity.brand}\nDesarrollo web, contenido y automatización. Servicios y experiencia profesional desde Costa Rica.\n${snapshot.entries.map((e) => `- [${e.title}](${origin}${entryPath(e)}): ${e.summary}`).join("\n")}\n`,
+  `# ${siteIdentity.name} | ${siteIdentity.brand}\nDesarrollo web, contenido y automatización. Servicios y experiencia profesional desde Costa Rica.\n${caseAreas.map(area => `- [${area.title}](${origin}/#area-${area.id}): ${areaStories[area.id]!.narrative}`).join("\n")}\n`,
 );
 // The public Worker returns 404 for every missing asset; never deploy an SPA fallback.
 await writeFile(

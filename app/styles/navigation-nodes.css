@@ -11,6 +11,15 @@
   position: relative;
   padding-bottom: var(--space-quarter);
 }
+.nav-section-label {
+  display: grid;
+  justify-items: center;
+}
+.nav-section-label > span { grid-area: 1 / 1; }
+/* Reserve space for the longer label across both languages. */
+.nav-label-measure {
+  visibility: hidden;
+}
 .nav-node {
   position: absolute;
   left: 2.5%;
@@ -32,6 +41,25 @@
 }
 .public-site .header nav a[aria-current] .nav-node circle { fill: var(--node-on); }
 
+.public-site .header nav .language-toggle {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+}
+.language-toggle .nav-node .language-light {
+  fill: var(--node-on);
+  filter: var(--node-halo-filter);
+}
+.language-toggle[data-language="en"] .language-light { transform: translateX(86px); }
+.language-toggle[data-language="es"] .language-es,
+.language-toggle[data-language="en"] .language-en {
+  color: var(--color-ink);
+  text-shadow: 0 0 5px var(--node-on), 0 0 8px var(--node-on);
+}
+.language-es, .language-en { color: var(--color-steel); }
+@media (prefers-reduced-motion: no-preference) {
+  .language-toggle .language-light { transition: transform 240ms ease-in-out; }
+  .language-es, .language-en { transition: color 240ms ease, text-shadow 240ms ease; }
+}
 /* Menu travel duration is doubled from 1.233333s to halve its cycle rate. */
 .nav-node .travelling-node { display: none; }
 .public-site .header nav a[aria-current] .nav-node .travelling-node,

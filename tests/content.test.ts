@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { readFile } from "node:fs/promises";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import Home from "../app/routes/home";
-import { caseAreas, selectCases, published, structuredServices } from "../app/content";
+import { caseAreas, selectCases, publicPaths, published, structuredServices } from "../app/content";
 import { snapshotSchema, entryPath } from "../shared/contracts";
 import { EntryView } from "../shared/EntryView";
 import publicWorker from "../server/public";
@@ -132,6 +132,19 @@ test("Worker público conserva 404 y rechaza escrituras", async () => {
   );
   assert.equal(response.status, 404);
   assert.match(await response.text(), /noindex/);
+  assert.deepEqual(publicPaths, ["/", "/en/"]);
+  for (const [path, target] of [
+    ["/proyectos/fak/?ref=cv", "/?ref=cv#caso-fak"],
+    ["/en/cases/fak", "/en/#caso-fak"],
+    ["/proyectos/gestor/", "/#proyectos"],
+    ["/servicios/creacion-de-sitios/", "/#servicios"],
+  ]) {
+    const redirect = await publicWorker.fetch(new Request("https://site.example" + path), env);
+    assert.equal(redirect.status, 301);
+    assert.equal(redirect.headers.get("Location"), "https://site.example" + target);
+  }
+  const unknown = await publicWorker.fetch(new Request("https://site.example/proyectos/no-existe"), env);
+  assert.equal(unknown.status, 404);
   assert.equal(
     (
       await publicWorker.fetch(
@@ -249,7 +262,7 @@ test("Home integra trayectoria y método sin un bloque separado de Perfil", () =
   } finally { router.dispose(); }
 });
 
-test("Service describe únicamente los servicios visibles y sus rutas", () => {
+test("Service describe únicamente los servicios visibles en la portada", () => {
   const base = "https://portfolio.example";
   const services = published.entries.filter(entry => entry.kind === "service");
   const nodes = structuredServices(base, "/");
@@ -258,7 +271,8 @@ test("Service describe únicamente los servicios visibles y sus rutas", () => {
     assert.equal(nodes[index]!.name, entry.title);
     assert.equal(nodes[index]!.description, entry.summary);
     assert.equal(nodes[index]!.provider["@id"], base + "/#person");
-    assert.deepEqual(structuredServices(base, entryPath(entry)), [nodes[index]]);
+    assert.equal(nodes[index]!.url, base + "/#resumen-servicio-" + entry.slug);
+    assert.deepEqual(structuredServices(base, entryPath(entry)), []);
   });
   assert.deepEqual(structuredServices(base, "/proyectos/fak/"), []);
 });

@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { readFile } from "node:fs/promises";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import Home from "../app/routes/home";
-import { caseAreas, published, resolveCaseFragment, areaExperienceId, standaloneCaseFragmentPath, areaStories } from "../app/content";
+import { caseAreas, published, resolveCaseFragment, areaExperienceId, retiredPublicDestination, areaStories } from "../app/content";
 import { ProjectCard } from "../app/components/ProjectCard";
 import { snapshotSchema, entryPath } from "../shared/contracts";
 import { nextBlockScroll, visibleNavigationSection } from "../app/components/PageMotion";
@@ -15,7 +15,7 @@ test("cuatro controles y modales agrupan experiencias y resuelven fragmentos his
   const router = createMemoryRouter([{ path: "/", element: createElement(Home) }]);
   try {
     const html = renderToStaticMarkup(createElement(RouterProvider, { router }));
-    const controls = [...html.matchAll(/<a[^>]*aria-haspopup="dialog"[^>]*>Conocer más<\/a>/g)];
+    const controls = [...html.matchAll(/<button[^>]*aria-haspopup="dialog"[^>]*>Conocer más<\/button>/g)];
     assert.equal(controls.length, 4);
     assert.equal([...html.matchAll(/<dialog\b/g)].length, 4);
     const expected = [
@@ -44,7 +44,9 @@ test("cuatro controles y modales agrupan experiencias y resuelven fragmentos his
         assert.ok(modal.includes(`id="${areaExperienceId(area, id)}"`));
       }
       const story = areaStories[area.id]!;
-      for (const text of [story.trajectory, ...story.results]) assert.ok(modal.includes(text));
+      assert.ok(modal.includes(`<p class="area-story">${story.narrative}</p>`));
+      assert.ok(modal.includes('<ul class="area-results" role="list">'));
+      for (const result of story.results) assert.ok(modal.includes(`<li>${result}</li>`));
       assert.doesNotMatch(modal, /<h4|Página de esta experiencia|>Contexto<|>Mi participación<|\b(?:19|20)\d{2}\b/);
       const words = modal.replace(/<[^>]*>/g, " ").trim().split(/\s+/);
       assert.ok(words.length <= 150, `${area.id}: ${words.length} palabras, mantener lectura breve`);
@@ -57,8 +59,7 @@ test("cuatro controles y modales agrupan experiencias y resuelven fragmentos his
       const owner = caseAreas.find(area => area.experienceIds.includes(entry.id));
       assert.equal(result?.area, owner);
       assert.equal(result?.experienceId, owner ? entry.id : undefined);
-      assert.equal(standaloneCaseFragmentPath(`#caso-${entry.slug}`), owner ? undefined : entryPath(entry));
-      assert.ok(entryPath(entry).startsWith("/proyectos/"));
+      assert.equal(retiredPublicDestination(entryPath(entry)), owner ? `/#caso-${entry.slug}` : "/#proyectos");
     }
     for (const id of ["gestor", "centrificador", "eventos-combate"]) {
       assert.ok(!caseAreas.some(area => area.experienceIds.includes(id)));
@@ -72,7 +73,7 @@ test("cuatro controles y modales agrupan experiencias y resuelven fragmentos his
   } finally { router.dispose(); }
 });
 
-test("portada ofrece modales etiquetados y páginas históricas de respaldo", async () => {
+test("portada ofrece modales etiquetados y resúmenes sin enlaces a fichas", async () => {
   const snapshot = snapshotSchema.parse(JSON.parse(await readFile("content/published.json", "utf8")));
   const router = createMemoryRouter([{ path: "/", element: createElement(Home) }]);
   try {
@@ -92,13 +93,14 @@ test("portada ofrece modales etiquetados y páginas históricas de respaldo", as
         assert.ok(section.includes(`id="resumen-servicio-${entry.slug}"`));
         continue;
       }
-      if (caseAreas.some(area => area.entryId === entry.id)) assert.ok(html.includes(`href="${entryPath(entry)}"`), "Página representativa disponible sin JavaScript");
+      assert.ok(!html.includes(`href="${entryPath(entry)}"`));
     }
     const ids = [...html.matchAll(/ id="([^"]+)"/g)].map(match => match[1]!);
     assert.equal(new Set(ids).size, ids.length, "Sin IDs repetidos entre detalles y galerías");
     assert.match(html, /class="button" href="https:\/\/github.com\/AndMad404" target="_blank" rel="noopener noreferrer"/);
     assert.match(html, /class="text-link" href="https:\/\/www.linkedin.com\/in\/andres-mad\/" target="_blank" rel="noopener noreferrer"/);
-    assert.match(html, /<a[^>]*id="resumen-area-sitios-web"[^>]*aria-haspopup="dialog"/);
+    assert.match(html, /<button[^>]*id="resumen-area-sitios-web"[^>]*aria-haspopup="dialog"/);
+    assert.doesNotMatch(html, /Leer caso completo/);
   } finally { router.dispose(); }
 });
 

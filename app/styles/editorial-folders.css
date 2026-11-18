@@ -56,7 +56,6 @@
   color: inherit;
   pointer-events: auto;
   font-size: var(--text-ui);
-  font-weight: 600;
   line-height: 1.2;
   text-align: center;
 }

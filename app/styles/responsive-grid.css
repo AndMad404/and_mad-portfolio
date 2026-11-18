@@ -9,22 +9,30 @@
   align-items: center;
   gap: var(--space-eighth);
   min-height: 4.5rem;
-  padding-inline: max(var(--space-half), env(safe-area-inset-left)) max(var(--space-half), env(safe-area-inset-right));
+  padding-inline: max(var(--space-quarter), env(safe-area-inset-left)) max(var(--space-quarter), env(safe-area-inset-right));
 }
 .public-site .header .brand {
   width: max-content;
-  font-size: clamp(1rem, 4.5vw, 1.5rem);
+  font-size: .9375rem;
   gap: var(--space-eighth);
 }
 .public-site .header nav {
   width: auto;
   justify-self: end;
   flex-wrap: nowrap;
-  gap: var(--space-quarter);
+  gap: var(--space-eighth);
 }
 .public-site .header nav a {
-  font-size: clamp(.75rem, 2.8vw, .875rem);
+  font-size: .6875rem;
   white-space: nowrap;
+}
+@media (min-width: 22.5rem) {
+  .public-site .header .shell {
+    padding-inline: max(var(--space-half), env(safe-area-inset-left)) max(var(--space-half), env(safe-area-inset-right));
+  }
+  .public-site .header .brand { font-size: clamp(1rem, 4.5vw, 1.5rem); }
+  .public-site .header nav { gap: var(--space-quarter); }
+  .public-site .header nav a { font-size: clamp(.75rem, 2.8vw, .875rem); }
 }
 @media (min-width: 48rem) {
   .public-site .header .shell { gap: var(--space-1); padding-inline: var(--gutter); }

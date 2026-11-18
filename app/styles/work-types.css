@@ -72,8 +72,65 @@
   background: var(--surface-dark);
 }
 .work-type-window[data-blueprint-window="true"] { background: transparent; }
-.work-type-content { display: grid; gap: var(--content-space); align-content: start; }
+.work-type-content { display: grid; gap: var(--space-half); align-content: start; }
 .public-site .project-card .work-type-content > * { margin: 0; }
+.public-site .work-type-opener.button { gap: 0; }
+.public-site .work-type-opener.button::before {
+  order: -2;
+  flex-basis: var(--content-node-size);
+  width: var(--content-node-size);
+  height: var(--content-node-size);
+  background: var(--node-off);
+  box-shadow: none;
+}
+.work-type-opener::after {
+  --arrow-tip: calc(var(--space-quarter) / 2);
+  --arrow-stroke: calc(var(--blueprint-line-width) / 2);
+  content: "";
+  order: -1;
+  flex: 1 1 var(--space-half);
+  height: var(--space-quarter);
+  margin-inline-end: var(--space-quarter);
+  background: var(--node-off);
+  mask:
+    linear-gradient(#000 0 0) left center / calc(100% - var(--arrow-stroke)) var(--blueprint-line-width) no-repeat,
+    linear-gradient(45deg, transparent calc(50% - var(--arrow-stroke)), #000 0 calc(50% + var(--arrow-stroke)), transparent 0)
+      right top / var(--arrow-tip) var(--arrow-tip) no-repeat,
+    linear-gradient(-45deg, transparent calc(50% - var(--arrow-stroke)), #000 0 calc(50% + var(--arrow-stroke)), transparent 0)
+      right bottom / var(--arrow-tip) var(--arrow-tip) no-repeat;
+}
+.public-site .work-type-opener.button:is(:hover, :focus-visible, :active)::before {
+  background: var(--node-on);
+  box-shadow: var(--node-halo);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .public-site .work-type-opener.button::before {
+    transition: background-color var(--node-transition), box-shadow var(--node-transition);
+  }
+  .work-type-opener::after {
+    background-image: linear-gradient(90deg, transparent, var(--node-on), transparent);
+    background-repeat: no-repeat;
+    background-size: var(--space-1) 100%;
+    background-position: calc(0% - var(--space-1)) center;
+  }
+  .work-type-opener:is(:hover, :focus-visible, :active)::after {
+    animation: work-type-light-travel 280ms linear 80ms;
+  }
+  .public-site .work-type-opener:is(:hover, :focus-visible, :active) {
+    animation: work-type-label-glow 420ms ease-out 340ms;
+  }
+  @keyframes work-type-light-travel {
+    to { background-position: calc(100% + var(--space-1)) center; }
+  }
+  @keyframes work-type-label-glow {
+    40% { text-shadow: var(--node-halo); }
+  }
+}
+.work-type-details { display: none; }
+@media (orientation: landscape) {
+  .public-site .work-type-opener { display: none; }
+  .work-type-details { display: block; }
+}
 .work-experiences { padding: 0; list-style: none; display: grid; gap: var(--content-space); }
 .work-experiences a { display: inline-block; min-height: 2.75rem; padding-block: var(--space-quarter); color: var(--blue); }
 @media (min-width: 48rem) {

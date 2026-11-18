@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { snapshotSchema, entryPath } from "../shared/contracts";
-import { homeSeo, siteIdentity, caseAreas, structuredServices, areaStories } from "../app/content";
-const snapshot = snapshotSchema.parse(
-  JSON.parse(await readFile("content/published.json", "utf8")),
-);
+import { alternateLanguagePath, englishAreas, englishHomePath, englishHomeSeo, homeSeo, isEnglishPath, publicPaths, published as snapshot, siteIdentity, caseAreas, structuredServices, areaStories } from "../app/content";
 const origin = process.env.SITE_ORIGIN;
 const indexable = process.env.INDEXABLE === "true";
-const paths = ["/", ...snapshot.entries.map(entryPath)];
+const paths = publicPaths;
 const titles = new Set<string>();
 const descriptions = new Set<string>();
 const decode = (value: string) => value.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (_, entity: string) => {
@@ -22,22 +18,14 @@ const attribute = (tag: string, name: string) => {
 const escape = (s: string) => s
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
-function verifyEntryText(html: string, entry: (typeof snapshot.entries)[number]) {
-  const values = entry.kind === "service"
-    ? [entry.title, entry.summary, entry.contribution, ...entry.decisions, entry.limits]
-    : [entry.title, entry.summary, entry.problem, entry.contribution,
-      ...entry.decisions, entry.results, entry.limits, ...entry.evidence.map(item => item.label)];
-  for (const value of values) {
-    assert.ok(html.includes(escape(value)), `Texto completo sin ejecutar JavaScript: ${entry.slug}`);
-  }
-}
-
 for (const route of paths) {
   const html = await readFile(
     path.join("build/site/client", route, "index.html"),
     "utf8",
   );
-  assert.match(html, /<html lang="es-CR"/);
+  const english = isEnglishPath(route);
+  const locale = english ? "en" : siteIdentity.language;
+  assert.ok(html.includes(`<html lang="${locale}"`));
   assert.match(html, /<h1[^>]*>[^<]+/);
   assert.equal(
     [...html.matchAll(/<h1(?:\s|>)/g)].length,
@@ -52,9 +40,9 @@ for (const route of paths) {
     assert.equal(matches.length, 1, `Un solo metadato ${name}: ${route}`);
     return attribute(matches[0]!, "content");
   };
-  const entry = snapshot.entries.find((e) => entryPath(e) === route);
-  const expectedTitle = entry?.title ?? homeSeo.title;
-  const expectedDescription = entry?.summary ?? homeSeo.description;
+  const seo = english ? englishHomeSeo : homeSeo;
+  const expectedTitle = seo.title;
+  const expectedDescription = seo.description;
   const pageTitles = [...head.matchAll(/<title>([\s\S]*?)<\/title>/g)];
   assert.equal(pageTitles.length, 1, `Un solo title: ${route}`);
   const title = decode(pageTitles[0]![1]!);
@@ -71,14 +59,23 @@ for (const route of paths) {
   assert.equal(meta("twitter:title"), expectedTitle);
   assert.equal(meta("twitter:description"), expectedDescription);
   assert.ok(!metaTags.some(tag => attribute(tag, "name") === "keywords"));
-  assert.match(html, /aria-label="Principal"/);
+  assert.ok(html.includes(`<nav aria-label="${english ? "Main" : "Principal"}"`));
+  const languageLink = html.match(/<a\b[^>]*class="language-toggle"[^>]*>/)?.[0];
+  assert.ok(languageLink, `Selector de idioma: ${route}`);
+  assert.equal(attribute(languageLink, "data-language"), english ? "en" : "es");
+  const alternate = alternateLanguagePath(route);
+  assert.equal(attribute(languageLink, "href"), alternate);
   assert.doesNotMatch(html, /PRIVATE_DRAFT_SENTINEL|PRIVATE_QUERY_SENTINEL/);
-  const canonicals = [...head.matchAll(/<link\b[^>]*>/g)].map(match => match[0]).filter(tag => attribute(tag, "rel") === "canonical");
+  const links = [...head.matchAll(/<link\b[^>]*>/g)].map(match => match[0]);
+  const canonicals = links.filter(tag => attribute(tag, "rel") === "canonical");
   const structured = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)];
   assert.equal(canonicals.length, origin ? 1 : 0, `Canónica única cuando existe origen: ${route}`);
   assert.equal(structured.length, origin ? 1 : 0, `Grafo JSON-LD único: ${route}`);
   if (origin) {
     assert.equal(attribute(canonicals[0]!, "href"), origin + route);
+    const alternates = links.filter(tag => attribute(tag, "rel") === "alternate");
+    assert.deepEqual(alternates.map(tag => [attribute(tag, "hrefLang"), attribute(tag, "href")]),
+      alternate ? [[siteIdentity.language, origin + (english ? alternate : route)], ["en", origin + (english ? route : alternate)]] : []);
     assert.equal(meta("og:url", "property"), origin + route);
     assert.equal(meta("og:image", "property"), origin + "/social-card.png");
     assert.equal(meta("twitter:image"), origin + "/social-card.png");
@@ -99,7 +96,7 @@ for (const route of paths) {
     assert.equal(page.url, origin + route);
     assert.equal(page.name, expectedTitle);
     assert.equal(page.description, expectedDescription);
-    assert.equal(page.inLanguage, "es-CR");
+    assert.equal(page.inLanguage, locale);
     assert.equal(page.isPartOf["@id"], website["@id"]);
     assert.equal(page.about["@id"], person["@id"]);
     assert.equal(person.name, "Andrés Madrigal");
@@ -116,46 +113,47 @@ for (const route of paths) {
   assert.match(footer, /href="https:\/\/github.com\/AndMad404"/);
   assert.equal([...html.matchAll(/id="contacto"/g)].length, 1, `Un único contacto: ${route}`);
   assert.doesNotMatch(html, /id="perfil"|href="[^"\s]*#perfil"|Perfil y forma de trabajar/);
-  if (route === "/") {
-    for (const section of ["servicios", "proyectos", "contacto"]) {
-      assert.ok(
-        html.includes(`id="${section}"`),
-        `Ancla visible sin JavaScript: ${section}`,
-      );
+  for (const section of ["servicios", "proyectos", "contacto"]) {
+    assert.ok(html.includes(`id="${section}"`), `Ancla visible sin JavaScript: ${section}`);
+    assert.ok(html.includes(`href="${route}#${section}"`));
+  }
+  assert.equal([...html.matchAll(/<dialog(?:\s|>)/g)].length, caseAreas.length);
+  for (const area of caseAreas) {
+    const story = (english ? englishAreas : areaStories)[area.id]!;
+    const opener = html.match(new RegExp(`<button[^>]*id="resumen-area-${area.id}"[^>]*>`))?.[0];
+    assert.ok(opener);
+    assert.equal(attribute(opener, "aria-controls"), area.modalId);
+    assert.ok(html.includes(`<p class="area-story">${escape(story.narrative)}</p>`));
+    const modal = html.match(new RegExp(`<dialog id="${area.modalId}"[^>]*>[\\s\\S]*?<\\/dialog>`))?.[0];
+    assert.ok(modal, `Modal para ${area.id}`);
+    assert.ok(modal.includes(escape(story.narrative)));
+    assert.match(modal, /class="area-results" role="list"/);
+    for (const result of story.results) assert.ok(modal.includes(`<li>${escape(result)}</li>`));
+  }
+  assert.doesNotMatch(html, /<(?:a)\b[^>]*href="\/(?:proyectos|servicios|en\/cases)\/|Leer caso completo|Read full case study/);
+  if (english) {
+    for (const text of ["Clear content.", "Web interfaces and integrations", "Selected work.", "Learn more"]) {
+      assert.ok(html.includes(text), `Texto inglés prerenderizado: ${text}`);
     }
-    for (const item of snapshot.entries.filter(item => caseAreas.some(area => area.entryId === item.id))) {
-      assert.ok(
-        html.includes(`href="${entryPath(item)}"`),
-        `Ruta accesible sin JavaScript: ${item.slug}`,
-      );
-    }
-    assert.equal([...html.matchAll(/<dialog(?:\s|>)/g)].length, caseAreas.length,
-      "Cuatro modales de área en HTML");
-    for (const area of caseAreas) {
-      assert.ok(html.includes(`id="${area.modalId}"`));
-      assert.ok(html.includes(`aria-controls="${area.modalId}"`));
-      assert.ok(html.includes(escape(area.introduction)));
-      const story = areaStories[area.id]!;
-      for (const text of [story.trajectory, ...story.results]) {
-        assert.ok(html.includes(escape(text)), `Síntesis comercial completa: ${area.id}`);
+  }
+  if (!english) {
+    const section = html.slice(html.indexOf('id="servicios"'), html.indexOf('id="proyectos"'));
+    for (const service of snapshot.entries.filter(item => item.kind === "service")) {
+      for (const value of [service.title, ...service.decisions]) {
+        assert.ok(section.includes(escape(value)), `Servicio visible sin interacción: ${service.slug}`);
       }
     }
-    for (const item of snapshot.entries) {
-      if (item.kind === "service") {
-        const section = html.slice(html.indexOf('id="servicios"'), html.indexOf('id="proyectos"'));
-        for (const value of [item.title, ...item.decisions]) assert.ok(section.includes(escape(value)), `Servicio visible sin interacción: ${item.slug}`);
-        assert.doesNotMatch(section, /<a\b|<button\b|<dialog\b|<details\b/);
-        continue;
-      }
-      assert.ok(!html.includes(`id="modal-${item.id}"`), "Las fichas históricas conservan su página, sin volcarse en la portada");
-    }
+    assert.doesNotMatch(section, /<a\b|<button\b|<dialog\b|<details\b/);
     assert.match(html, /class="blueprint-background" aria-hidden="true"/);
     assert.match(html, /class="blueprint-energy-canvas"/);
     assert.match(html, /class="blueprint-grid-line"/);
     assert.doesNotMatch(html, /aria-label="Muestra ilustrativa del proceso editorial"/);
     assert.doesNotMatch(html, /UNA FICHA \/ DOS MOMENTOS|Antes de la revisión|Propuesta revisada/);
   }
-  if (entry) verifyEntryText(html, entry);
+}
+assert.deepEqual(paths, ["/", "/en/"]);
+for (const directory of ["proyectos", "servicios", "en/cases"]) {
+  await assert.rejects(readdir(path.join("build/site/client", directory)), { code: "ENOENT" });
 }
 const sitemap = await readFile("build/site/client/sitemap.xml", "utf8");
 const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => decode(match[1]!));
@@ -186,5 +184,5 @@ assert.ok(
   !(await readdir("build/site/client")).includes("__spa-fallback.html"),
 );
 console.info(
-  `HTML, metadatos y separación pública verificados en ${snapshot.entries.length + 1} rutas.`,
+  `HTML, metadatos y separación pública verificados en ${paths.length} rutas.`,
 );

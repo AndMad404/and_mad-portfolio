@@ -5,10 +5,12 @@ export function EntryView({
   entry,
   transition = false,
   inline = false,
+  english = false,
 }: {
   entry: Entry;
   transition?: boolean;
   inline?: boolean;
+  english?: boolean;
 }) {
   const Title = inline ? "h2" : "h1";
   const SectionTitle = inline ? "h3" : "h2";
@@ -16,9 +18,7 @@ export function EntryView({
     <article className="detail editorial-detail">
       <header className="detail-heading">
         <p className="eyebrow">
-          {entry.kind === "service"
-            ? "Servicios en Costa Rica"
-            : "Caso de estudio"}
+          {entry.kind === "service" ? "Servicios en Costa Rica" : english ? "Case study" : "Caso de estudio"}
         </p>
         <Title className="entry-title" tabIndex={-1}>{entry.title}</Title>
         <p className="lede">{entry.summary}</p>
@@ -32,7 +32,7 @@ export function EntryView({
       </header>
       {entry.kind === "case" && (
         inline ? <div className="entry-parallax-window" aria-hidden="true" /> :
-          <CaseCover entry={entry} transition={transition} />
+          <CaseCover entry={entry} transition={transition} english={english} />
       )}
       {entry.kind === "service" ? <div className="detail-body">
         {entry.decisions.length > 0 && <section className="detail-block">
@@ -56,7 +56,7 @@ export function EntryView({
             01
           </span>
           <div>
-            <SectionTitle>El problema</SectionTitle>
+            <SectionTitle>{english ? "The problem" : "El problema"}</SectionTitle>
             <p>{entry.problem}</p>
           </div>
         </section>
@@ -66,7 +66,7 @@ export function EntryView({
           </span>
           <div>
             <SectionTitle>
-              Mi participación
+              {english ? "My role" : "Mi participación"}
             </SectionTitle>
             <p>{entry.contribution}</p>
           </div>
@@ -76,7 +76,7 @@ export function EntryView({
             03
           </span>
           <div>
-            <SectionTitle>Decisiones</SectionTitle>
+            <SectionTitle>{english ? "Decisions" : "Decisiones"}</SectionTitle>
             <ul>
               {entry.decisions.map((d, i) => (
                 <li key={i}>{d}</li>
@@ -89,7 +89,7 @@ export function EntryView({
             {entry.decisions.length > 0 ? "04" : "03"}
           </span>
           <div>
-            <SectionTitle>Resultados y entregables</SectionTitle>
+            <SectionTitle>{english ? "Results and deliverables" : "Resultados y entregables"}</SectionTitle>
             <p>{entry.results}</p>
           </div>
         </section>
@@ -98,15 +98,16 @@ export function EntryView({
             {entry.decisions.length > 0 ? "05" : "04"}
           </span>
           <div>
-            <SectionTitle>Alcance y límites</SectionTitle>
+            <SectionTitle>{english ? "Scope and limits" : "Alcance y límites"}</SectionTitle>
             <p>{entry.limits}</p>
           </div>
         </section>
       </div>}
-      {entry.kind === "case" && <EvidenceGallery evidence={entry.evidence} headingLevel={inline ? 3 : 2} />}
+      {entry.kind === "case" && <EvidenceGallery evidence={entry.evidence} headingLevel={inline ? 3 : 2} english={english} />}
       <div className="detail-contact">
         <a className="button" href="https://www.linkedin.com/in/andres-mad/" target="_blank" rel="noopener noreferrer">
-          {entry.kind === "service" ? "Conversemos sobre tu proyecto ↗" : "Conversemos sobre este trabajo ↗"}
+          {entry.kind === "service" ? "Conversemos sobre tu proyecto ↗" :
+            english ? "Let’s talk about this work ↗" : "Conversemos sobre este trabajo ↗"}
         </a>
       </div>
     </article>

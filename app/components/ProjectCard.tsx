@@ -1,10 +1,10 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { Link, useLocation, useNavigate, useViewTransitionState } from "react-router";
 import { EntryView } from "../../shared/EntryView";
 import { CaseCover } from "../../shared/CaseCover";
 import { entryPath, type Entry } from "../../shared/contracts";
 import { useReducedMotion } from "../../shared/motion";
-import { areaExperienceId, areaStories, caseAreas, type CaseArea } from "../content";
+import { areaExperienceId, areaStories, caseAreas, englishAreas, type CaseArea, type resolveCaseFragment } from "../content";
 
 const caseLabels: Record<string, string> = {
   fak: "PLATAFORMA COMPLETADA",
@@ -104,14 +104,98 @@ export function EntryModal({ entry, open, transition = false, onRequestClose }: 
   </AccessibleModal>;
 }
 
-export function AreaModal({ area, entries, open, experienceId, onRequestClose }: {
+const landscapeQuery = "(orientation: landscape)";
+
+function subscribeToOrientation(onChange: () => void) {
+  const orientation = window.matchMedia(landscapeQuery);
+  orientation.addEventListener("change", onChange);
+  return () => orientation.removeEventListener("change", onChange);
+}
+
+export function AreaCard({ area, entries, selected, english = false }: {
+  area: CaseArea;
+  entries: Entry[];
+  selected: ReturnType<typeof resolveCaseFragment>;
+  english?: boolean;
+}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const reduced = useReducedMotion();
+  const landscape = useSyncExternalStore(subscribeToOrientation,
+    () => window.matchMedia(landscapeQuery).matches, () => false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const copy = english ? englishAreas[area.id]! : area;
+  const story = (english ? englishAreas : areaStories)[area.id]!;
+  const active = selected?.area.id === area.id;
+  const experienceId = active ? selected.experienceId : undefined;
+  const target = `${location.pathname}${location.search}#area-${area.id}`;
+
+  useLayoutEffect(() => {
+    if (!active || !landscape) return;
+    const frame = requestAnimationFrame(() => {
+      heading.current?.focus({ preventScroll: true });
+      heading.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, landscape, location.hash]);
+
+  return <>
+    <article className="project-card work-type" data-parallax={english ? undefined : "folder"}>
+      <h3 ref={heading} tabIndex={-1} className="work-type-title">{copy.title}</h3>
+      <div className="work-type-body">
+        <div className="work-type-window" aria-hidden="true" />
+        <div className="work-type-content">
+          <p className="area-story">{story.narrative}</p>
+          <button type="button" id={`resumen-area-${area.id}`} className="button work-type-opener"
+            aria-label={english ? `Learn more about ${copy.title}` : `Conocer más: ${area.label}`}
+            aria-haspopup="dialog" aria-controls={area.modalId}
+            onClick={() => {
+              navigate(target, { preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true } });
+            }}>{english ? "Learn more" : "Conocer más"}</button>
+          <div className="area-summary work-type-details">
+            <AreaResults area={area} english={english} inline />
+          </div>
+        </div>
+      </div>
+    </article>
+    <AreaModal area={area} entries={entries} english={english}
+      open={active && !landscape} experienceId={experienceId}
+      onRequestClose={() => {
+        if (location.state?.entryModal) navigate(-1);
+        else navigate(`${location.pathname}${location.search}#proyectos`, { replace: true, preventScrollReset: true });
+      }} />
+  </>;
+}
+
+function AreaResults({ area, english, inline = false }: {
+  area: CaseArea;
+  english: boolean;
+  inline?: boolean;
+}) {
+  const story = (english ? englishAreas[area.id] : areaStories[area.id])!;
+  const Heading = inline ? "h4" : "h3";
+  return <>
+    <Heading>{english ? "Results I deliver" : "Resultados que aporto"}</Heading>
+    <ul className="area-results" role="list">{story.results.map(item => <li key={item}>{item}</li>)}</ul>
+    {story.links.length > 0 && <ul className="area-evidence-links" aria-label={english ? "Public references" : "Evidencia pública"}>
+      {story.links.map(link => <li key={link.url}>
+        <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
+      </li>)}
+    </ul>}
+  </>;
+}
+
+function AreaModal({ area, entries, open, experienceId, english = false, onRequestClose }: {
   area: CaseArea;
   entries: Entry[];
   open: boolean;
   experienceId?: string;
+  english?: boolean;
   onRequestClose: () => void;
 }) {
-  return <AccessibleModal id={area.modalId} title={area.title} open={open} folder
+  const englishArea = english ? englishAreas[area.id] : undefined;
+  const story = englishArea ?? areaStories[area.id]!;
+  return <AccessibleModal id={area.modalId} title={englishArea?.title ?? area.title} open={open} folder english={english}
     fallbackId={`resumen-area-${area.id}`}
     targetId={experienceId ? areaExperienceId(area, experienceId) : undefined}
     onRequestClose={onRequestClose}>
@@ -124,26 +208,21 @@ export function AreaModal({ area, entries, open, experienceId, onRequestClose }:
             <span id={areaExperienceId(area, id)} />
           </span>;
         })}
-        <p className="lede">{areaStories[area.id]!.trajectory}</p>
-        <h3>Resultados que aporto</h3>
-        <ul>{areaStories[area.id]!.results.map(item => <li key={item}>{item}</li>)}</ul>
-        {areaStories[area.id]!.links.length > 0 && <ul className="area-evidence-links" aria-label="Evidencia pública">
-          {areaStories[area.id]!.links.map(link => <li key={link.url}>
-            <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
-          </li>)}
-        </ul>}
+        <p className="area-story">{story.narrative}</p>
+        <AreaResults area={area} english={english} />
       </header>
       <div className="entry-parallax-window" aria-hidden="true" />
     </article>
   </AccessibleModal>;
 }
 
-function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = false, fallbackId, targetId, onRequestClose, children }: {
+function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = false, english = false, fallbackId, targetId, onRequestClose, children }: {
   id: string;
   title: string;
   titleId?: string;
   open: boolean;
   folder?: boolean;
+  english?: boolean;
   fallbackId: string;
   targetId?: string;
   onRequestClose: () => void;
@@ -169,10 +248,16 @@ function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = fa
       root.style.overflow = overflow;
       root.style.scrollbarGutter = gutter;
       const fallback = document.getElementById(fallbackId);
-      const focus = opener?.isConnected && opener !== document.body ? opener : fallback;
-      focus?.focus({ preventScroll: true });
+      if (folder) {
+        requestAnimationFrame(() => {
+          if (!document.querySelector("dialog[open]")) fallback?.focus({ preventScroll: true });
+        });
+      } else {
+        const focus = opener?.isConnected && opener !== document.body ? opener : fallback;
+        focus?.focus({ preventScroll: true });
+      }
     };
-  }, [open, id, fallbackId]);
+  }, [open, id, fallbackId, folder]);
   useLayoutEffect(() => {
     if (!open) return;
     const anchor = targetId ? document.getElementById(targetId) : null;
@@ -186,7 +271,7 @@ function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = fa
     }
   }, [open, targetId]);
   const returnButton = <button ref={closeButton} type="button" className="entry-modal-close"
-    onClick={onRequestClose} aria-label="Volver a los casos"><span className="entry-modal-close-label">Volver</span> <svg className="entry-modal-arrow"
+    onClick={onRequestClose} aria-label={english ? "Back to cases" : "Volver a los casos"}><span className="entry-modal-close-label">{english ? "Back" : "Volver"}</span> <svg className="entry-modal-arrow"
       viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
       <path d="M20 33V9M9 20L20 9L31 20" />
       <circle cx="20" cy="33" r="2" /><circle cx="20" cy="9" r="3" />
@@ -203,7 +288,7 @@ function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = fa
         {folder ? <h2 id={titleId} className="area-folder-title">{title}</h2> : <span id={titleId}>{title}</span>}
         {!folder && returnButton}
       </header>
-      <div ref={scroller} className="entry-modal-scroll" tabIndex={0} aria-label="Contenido del detalle">
+      <div ref={scroller} className="entry-modal-scroll" tabIndex={0} aria-label={english ? "Case details" : "Contenido del detalle"}>
         {folder && <div className="area-modal-actions">{returnButton}</div>}
         {children}
       </div>
