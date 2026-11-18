@@ -118,9 +118,9 @@
     box-shadow: 0 0 18px #87ceeb33;
     touch-action: manipulation;
   }
-  .back-to-top svg { width: 100%; height: 100%; filter: drop-shadow(0 0 3px #87ceeb88); }
-  .back-to-top path { stroke: var(--color-steel); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
-  .back-to-top circle { fill: currentColor; }
+  .back-to-top svg { width: 100%; height: 100%; filter: var(--node-halo-filter); }
+  .back-to-top path { stroke: var(--node-off); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
+  .back-to-top circle { fill: var(--node-on); }
   .public-site .back-to-top:focus-visible { outline: 3px solid var(--color-sky); outline-offset: 3px; }
   .public-site > footer.shell { margin-bottom: var(--space-2); }
 }

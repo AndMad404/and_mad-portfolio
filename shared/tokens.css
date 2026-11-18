@@ -35,6 +35,13 @@
     linear-gradient(90deg, rgb(145 159 186 / 4%) 1px, transparent 3px),
     linear-gradient(rgb(145 159 186 / 4%) 1px, transparent 3px);
   --surface-dark-grid-size: var(--grid-unit) var(--grid-unit);
+  /* One state contract for every DOM/SVG node. Off: steel, flat. On: sky core with a sky+steel halo.
+     HTML nodes use box-shadow; SVG and gradient nodes use the equivalent drop-shadow (blur = 2 x std dev). */
+  --node-off: var(--color-steel);
+  --node-on: var(--color-sky);
+  --node-halo: 0 0 5px var(--color-sky), 0 0 12px var(--color-steel);
+  --node-halo-filter: drop-shadow(0 0 2.5px var(--color-sky)) drop-shadow(0 0 6px var(--color-steel));
+  --node-transition: 200ms ease-out;
   font-family: var(--font-sans);
   color: var(--color-ink);
   background: var(--color-paper);

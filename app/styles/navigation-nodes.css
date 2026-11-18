@@ -17,26 +17,28 @@
   bottom: 0;
   width: 95%;
   height: auto;
-  color: var(--color-steel);
+  color: var(--node-off);
+  transition: filter var(--node-transition);
 }
 .nav-node path {
   stroke: currentColor;
   stroke-width: var(--blueprint-line-width);
   vector-effect: non-scaling-stroke;
 }
-.nav-node circle { fill: var(--color-sky); }
+.nav-node circle { fill: var(--node-off); transition: fill var(--node-transition); }
 .public-site .header nav a[aria-current] .nav-node {
-  color: var(--color-steel);
-  filter: drop-shadow(0 0 3px var(--color-sky));
+  color: var(--node-off);
+  filter: var(--node-halo-filter);
 }
-.public-site .header nav a[aria-current] .nav-node circle { fill: var(--color-sky); }
+.public-site .header nav a[aria-current] .nav-node circle { fill: var(--node-on); }
 
 /* Menu travel duration is doubled from 1.233333s to halve its cycle rate. */
 .nav-node .travelling-node { display: none; }
 .public-site .header nav a[aria-current] .nav-node .travelling-node,
-.back-to-top .travelling-node {
-  fill: var(--color-sky);
-  filter: drop-shadow(0 0 2px var(--color-sky));
+.back-to-top .travelling-node,
+.entry-modal-arrow .travelling-node {
+  fill: var(--node-on);
+  filter: none; /* the lit container already carries the halo */
 }
 @media (prefers-reduced-motion: no-preference) {
   .public-site .header nav a[aria-current] .nav-node .travelling-node { display: inline; }

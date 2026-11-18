@@ -186,7 +186,7 @@ function AccessibleModal({ id, title, titleId = `${id}-title`, open, folder = fa
     }
   }, [open, targetId]);
   const returnButton = <button ref={closeButton} type="button" className="entry-modal-close"
-    onClick={onRequestClose} aria-label="Volver a los casos">Volver <svg className="entry-modal-arrow"
+    onClick={onRequestClose} aria-label="Volver a los casos"><span className="entry-modal-close-label">Volver</span> <svg className="entry-modal-arrow"
       viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
       <path d="M20 33V9M9 20L20 9L31 20" />
       <circle cx="20" cy="33" r="2" /><circle cx="20" cy="9" r="3" />

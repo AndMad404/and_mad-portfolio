@@ -50,11 +50,10 @@
   height: 40px;
   flex: 0 0 auto;
   transform: rotate(-90deg);
-  filter: drop-shadow(0 0 3px #87ceeb88);
+  filter: var(--node-halo-filter);
 }
-.entry-modal-arrow path { stroke: var(--color-steel); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
-.entry-modal-arrow circle { fill: var(--color-sky); }
-.entry-modal-arrow .travelling-node { filter: drop-shadow(0 0 2px var(--color-sky)); }
+.entry-modal-arrow path { stroke: var(--node-off); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
+.entry-modal-arrow circle { fill: var(--node-on); }
 .entry-modal-scroll {
   min-height: 0;
   overflow-y: auto;
@@ -177,6 +176,91 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+}
+.public-site .entry-modal-close .entry-modal-close-label { font-size: inherit; line-height: inherit; }
+/* Touch/phone layouts: the corner "back to top" arrow becomes this modal's return control.
+   It keeps the back-to-top corner and Y band (bottom 16px, 52px tall; same media query as
+   .back-to-top) and morphs in place: the up arrow turns left and "Volver" unfolds. */
+@keyframes return-arrow-turn {
+  from { transform: rotate(0deg); }
+}
+@keyframes return-label-unfold {
+  from { max-width: 0; padding-inline: 0; opacity: 0; }
+}
+@keyframes return-arrow-nudge {
+  0%, 55%, 100% { translate: 0 0; }
+  34% { translate: -3px 0; }
+}
+/* Opacity only: a transform on the dialog would make it the containing block of the fixed
+   control for the first 220ms and shift it off the back-to-top position. */
+@keyframes return-dialog-fade {
+  from { opacity: .65; }
+}
+@media (pointer: coarse), (max-width: 47.99rem) {
+  .public-site .entry-modal-folder .area-modal-actions { display: contents; }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-close {
+    position: fixed;
+    z-index: 30;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    box-sizing: border-box;
+    height: 52px;
+    flex-direction: row-reverse;
+    gap: 0;
+    padding: 0 5px;
+    border: 1px solid var(--color-steel);
+    border-radius: 999px;
+    background: var(--surface-dark);
+    color: var(--color-sky);
+    box-shadow: 0 0 18px #87ceeb33;
+    font: inherit;
+    font-size: var(--text-ui);
+    font-weight: 600;
+    touch-action: manipulation;
+    transition: border-color 160ms, box-shadow 160ms, scale 160ms;
+  }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-close:is(:hover, :focus-visible) {
+    border-color: var(--color-sky);
+    box-shadow: 0 0 22px #87ceeb66;
+  }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-close:focus-visible {
+    outline: 3px solid var(--color-sky);
+    outline-offset: 3px;
+  }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-close:active { scale: .96; }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-arrow { width: 40px; height: 40px; }
+  .public-site .entry-modal-folder .area-modal-actions .entry-modal-close-label {
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 6rem;
+    padding-inline: 2px 12px;
+  }
+  /* The fixed control no longer has a row: leave room so it never covers the last content. */
+  .public-site .entry-modal-folder .entry-modal-scroll::after {
+    content: "";
+    display: block;
+    height: calc(52px + max(16px, env(safe-area-inset-bottom)) + 8px);
+    background: var(--paper);
+  }
+  /* A paper strip above the window replaces the old row's top edge. */
+  .public-site .entry-modal-folder .entry-parallax-window { border-top: var(--space-quarter) solid var(--paper); }
+}
+/* Stacked layouts only: the freed row height goes to the window. */
+@media (max-width: 47.99rem), (pointer: coarse) and (max-width: 63.99rem) {
+  .public-site .entry-modal-folder .entry-parallax-window { min-height: clamp(12rem, 34dvh, 24rem); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @media (pointer: coarse), (max-width: 47.99rem) {
+    .public-site .entry-modal-folder[open] { animation: return-dialog-fade 220ms ease-out; }
+    .public-site .entry-modal-folder .area-modal-actions .entry-modal-arrow {
+      animation:
+        return-arrow-turn 480ms cubic-bezier(.22, 1, .36, 1) 260ms backwards,
+        return-arrow-nudge 2.4s ease-in-out 900ms infinite;
+    }
+    .public-site .entry-modal-folder .area-modal-actions .entry-modal-close-label {
+      animation: return-label-unfold 480ms cubic-bezier(.22, 1, .36, 1) 260ms backwards;
+    }
   }
 }
 .engineering-method {

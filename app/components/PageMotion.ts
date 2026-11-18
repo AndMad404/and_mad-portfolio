@@ -9,10 +9,7 @@ export function orderEnergySequences(rows: HTMLElement[]) {
     row.style.setProperty("--energy-node-delay", `${cursor + 600}ms`);
     cursor += 1500;
     row.style.setProperty("--energy-description-delay", `${cursor}ms`);
-    for (const description of row.querySelectorAll<HTMLElement>("[data-energy-description]")) {
-      description.style.setProperty("--energy-description-delay", `${cursor}ms`);
-      cursor += 600;
-    }
+    cursor += 600;
   }
 }
 

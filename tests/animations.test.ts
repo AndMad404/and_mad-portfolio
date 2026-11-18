@@ -76,24 +76,17 @@ test("el estándar de energía espera la descripción y no consume entradas inte
   cleanup();
 });
 
-test("servicios recorre los dieciséis pasos sin solapar filas ni prestaciones", () => {
-  const timed = () => ({ values: {} as Record<string, string>, style: { setProperty(name: string, value: string) {} } });
-  const rows = [3, 3, 3].map(count => {
-    const row = timed();
-    row.style.setProperty = (name, value) => { row.values[name] = value; };
-    const descriptions = Array.from({ length: count }, () => {
-      const item = timed();
-      item.style.setProperty = (name, value) => { item.values[name] = value; };
-      return item;
-    });
-    return { ...row, descriptions, querySelectorAll: () => descriptions };
+test("servicios asigna un solo turno al bloque de prestaciones de cada fila", () => {
+  const rows = Array.from({ length: 3 }, () => {
+    const values = new Map<string, string>();
+    return { values, style: { setProperty: (name: string, value: string) => values.set(name, value) } };
   });
   orderEnergySequences(rows as unknown as HTMLElement[]);
-  assert.deepEqual(rows.map(row => [row.values["--energy-title-delay"], row.values["--energy-node-delay"],
-    ...row.descriptions.map(item => item.values["--energy-description-delay"])]), [
-    ["720ms", "1320ms", "2220ms", "2820ms", "3420ms"],
-    ["4020ms", "4620ms", "5520ms", "6120ms", "6720ms"],
-    ["7320ms", "7920ms", "8820ms", "9420ms", "10020ms"],
+  assert.deepEqual(rows.map(row => ["--energy-title-delay", "--energy-node-delay", "--energy-description-delay"]
+    .map(name => row.values.get(name))), [
+    ["720ms", "1320ms", "2220ms"],
+    ["2820ms", "3420ms", "4320ms"],
+    ["4920ms", "5520ms", "6420ms"],
   ]);
 });
 

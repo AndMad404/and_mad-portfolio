@@ -69,6 +69,10 @@ export function createBlueprintGraph(columns = 9, rows = 7, seed = 173) {
   return { nodes, edges, signals, cell: CELL, nodeDuration: NODE_DURATION, connectionDuration: CONNECTION_DURATION };
 }
 const graph = createBlueprintGraph();
+/** Resting node colour: the site-wide --node-off token, so canvas and DOM nodes share one definition. */
+function nodeOff() {
+  return getComputedStyle(document.documentElement).getPropertyValue("--node-off").trim() || "#4682b4";
+}
 
 /** Decorative, deterministic SVG; all editorial content stays in normal HTML. */
 export function BlueprintBackground({ paused = false, variant = "page" }: {
@@ -162,7 +166,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
         const y = pointOf(lattice, 0, row).y;
         baseContext.moveTo(0, y); baseContext.lineTo(width * reveal, y);
       }
-      baseContext.stroke(); baseContext.fillStyle = "rgba(135,206,235,.6)";
+      baseContext.stroke(); baseContext.fillStyle = nodeOff();
       for (let row = firstRow; row <= lastRow; row++) for (let col = firstCol; col <= lastCol; col++) {
         const point = pointOf(lattice, col, row);
         baseContext.globalAlpha = documentReveal(bootTime, col, row).node;
@@ -351,9 +355,15 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     gradient.addColorStop(.7, "rgba(135,206,235,.35)");
     gradient.addColorStop(1, "rgba(70,130,180,0)");
     brush.fillStyle = gradient; brush.fillRect(0, 0, 64, 64);
-    function light(x: number, y: number, radius: number, alpha: number) {
+    // Off: a flat steel dot (the shared --node-off colour). On: the sky glow above fades in with power.
+    const rest = document.createElement("canvas");
+    rest.width = rest.height = 64;
+    const restBrush = rest.getContext("2d")!;
+    restBrush.fillStyle = nodeOff();
+    restBrush.beginPath(); restBrush.arc(32, 32, 16, 0, Math.PI * 2); restBrush.fill();
+    function light(x: number, y: number, radius: number, alpha: number, image: HTMLCanvasElement = sprite) {
       context!.globalAlpha = Math.max(0, Math.min(1, alpha));
-      context!.drawImage(sprite, x - radius, y - radius, radius * 2, radius * 2);
+      context!.drawImage(image, x - radius, y - radius, radius * 2, radius * 2);
     }
     function draw(now: number) {
       frame = null;
@@ -382,7 +392,8 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
         const boot = energyEase((clock - node.born) / 450);
         const hover = system.pointerNodes.get(node.id);
         const power = Math.max(nodePower(clock, node.hit), hover ? pointerPower(clock, hover.hit, hover.releasedAt) : 0);
-        light(node.x, node.y, 4 + (node.large ? power * 6 : 0), boot * (.28 + power * .7 + stimulation * .12));
+        light(node.x, node.y, 4, boot, rest);
+        light(node.x, node.y, 4 + (node.large ? power * 6 : 0), boot * (power * .7 + stimulation * .12));
       }
       if (!staticFrame && clock >= 1900) for (const signal of system.lights) {
         const from = system.nodes[signal.from]!, to = system.nodes[signal.to]!;

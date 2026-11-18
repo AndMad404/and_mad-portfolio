@@ -2,7 +2,14 @@
 .public-site {
   --content-node-size: clamp(.375rem, .25rem + .6vw, .625rem);
 }
-.public-site .services-section { display: grid; gap: calc(var(--content-space) / 2); }
+.public-site .services-section {
+  --energy-time-scale: .5;
+  display: grid;
+  gap: calc(var(--content-space) / 2);
+}
+.services-section .service-row {
+  --service-list-glow-duration: var(--energy-text-duration);
+}
 .public-site .services-section > .section-heading {
   margin: 0;
   width: fit-content;
@@ -79,29 +86,22 @@
   width: var(--content-node-size);
   height: var(--content-node-size);
   border-radius: 50%;
-  background: var(--color-steel);
+  background: var(--node-off);
+  transition: background-color var(--node-transition), box-shadow var(--node-transition);
 }
 .service-offer li.is-touch-active::before {
-  background: var(--color-sky);
-  box-shadow: 0 0 5px var(--color-sky), 0 0 12px var(--color-steel);
+  background: var(--node-on);
+  box-shadow: var(--node-halo);
 }
 @media (hover: hover) {
   .service-offer li:hover::before {
-    background: var(--color-sky);
-    box-shadow: 0 0 5px var(--color-sky), 0 0 12px var(--color-steel);
+    background: var(--node-on);
+    box-shadow: var(--node-halo);
   }
 }
 @media (prefers-reduced-motion: no-preference) {
   .is-section-energized [data-energy-intro] {
-    animation: energy-text-glow 600ms ease-out 120ms;
-  }
-  .service-offer li.is-touch-active::before { animation: service-item-glow 900ms ease-in-out infinite alternate; }
-  @media (hover: hover) {
-    .service-offer li:hover::before { animation: service-item-glow 900ms ease-in-out infinite alternate; }
-  }
-  @keyframes service-item-glow {
-    from { box-shadow: 0 0 3px var(--color-sky), 0 0 7px var(--color-steel); }
-    to { box-shadow: 0 0 7px var(--color-sky), 0 0 16px var(--color-steel); }
+    animation: energy-text-glow calc(600ms * var(--energy-time-scale, 1)) ease-out calc(120ms * var(--energy-time-scale, 1));
   }
 }
 .service-offer li + li { margin-top: var(--space-eighth); }
@@ -116,7 +116,7 @@
   max-width: 100%;
   min-width: 0;
   height: calc(var(--content-node-size) * 1.4);
-  color: var(--color-steel);
+  color: var(--node-off);
 }
 .service-node::before {
   content: "";
@@ -162,7 +162,6 @@
     width: 100%;
   }
   .public-site .services-section .service-row {
-    --service-list-glow-duration: var(--energy-node-duration);
     --service-step-duration: calc(var(--energy-node-duration) + var(--energy-text-duration) + var(--service-list-glow-duration));
     --service-sequence-offset: calc(var(--service-sequence-index, 0) * var(--service-step-duration));
     --energy-node-delay: calc(720ms + var(--service-sequence-offset));
@@ -171,7 +170,7 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     .public-site .services-section.is-section-energized #services-title {
-      animation: energy-text-glow 600ms ease-out 120ms;
+      animation: energy-text-glow calc(600ms * var(--energy-time-scale)) ease-out calc(120ms * var(--energy-time-scale));
     }
     /* Individual intersection events must not start a row before the section. */
     .public-site .services-section:not(.is-section-energized) .service-row.is-energized
@@ -214,30 +213,35 @@
   .is-section-energized [data-energy-node] > i:not(.service-node-traveller),
   .is-section-energized [data-energy-node]::before,
   .is-section-energized :is(.profile-context, .profile-process)::before {
-    animation: energy-node-glow 900ms ease-out var(--energy-node-delay, 720ms);
+    animation: energy-node-glow calc(900ms * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-node-delay, 720ms) * var(--energy-time-scale, 1));
   }
   .public-site .is-section-energized .service-offer li::before {
-    animation: energy-node-glow var(--service-list-glow-duration, 900ms) ease-out var(--energy-description-delay, 1620ms);
+    animation: energy-node-glow calc(var(--service-list-glow-duration, 900ms) * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-description-delay, 1620ms) * var(--energy-time-scale, 1));
   }
   @keyframes energy-node-glow {
-    45% { background-color: var(--color-sky); filter: drop-shadow(0 0 6px var(--color-sky)); }
+    45% { background-color: var(--node-on); filter: var(--node-halo-filter); }
   }
   .public-site [data-energy-sequence].is-energized [data-energy-title] {
-    animation: energy-text-glow var(--energy-text-duration) ease-out var(--energy-title-delay);
+    animation: energy-text-glow calc(var(--energy-text-duration) * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-title-delay) * var(--energy-time-scale, 1));
   }
   .public-site [data-energy-sequence].is-energized [data-energy-description] {
-    animation: energy-text-glow var(--energy-text-duration) ease-out var(--energy-description-delay);
+    animation: energy-text-glow calc(var(--energy-text-duration) * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-description-delay) * var(--energy-time-scale, 1));
   }
   [data-energy-sequence].is-energized [data-energy-node] .service-node-traveller {
-    animation: energy-node-travel var(--energy-node-duration) ease-in-out var(--energy-node-delay);
+    animation: energy-node-travel calc(var(--energy-node-duration) * var(--energy-time-scale, 1)) ease-in-out
+      calc(var(--energy-node-delay) * var(--energy-time-scale, 1));
   }
   @keyframes energy-text-glow {
     45% { color: var(--color-steel); text-shadow: 0 0 8px #87ceeb99; }
   }
   @keyframes energy-node-travel {
-    0% { left: 0; opacity: 0; background: var(--color-sky); box-shadow: 0 0 6px var(--color-sky); }
+    0% { left: 0; opacity: 0; background: var(--node-on); box-shadow: var(--node-halo); }
     10%, 90% { opacity: 1; }
-    100% { left: calc(100% - var(--content-node-size)); opacity: 0; background: var(--color-sky); box-shadow: 0 0 6px var(--color-sky); }
+    100% { left: calc(100% - var(--content-node-size)); opacity: 0; background: var(--node-on); box-shadow: var(--node-halo); }
   }
 }
 .profile-context::before, .profile-process::before {
