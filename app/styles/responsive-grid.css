@@ -20,7 +20,7 @@
   width: auto;
   justify-self: end;
   flex-wrap: nowrap;
-  gap: var(--space-eighth);
+  gap: var(--space-quarter);
 }
 .public-site .header nav a {
   font-size: clamp(.75rem, 2.8vw, .875rem);
@@ -104,10 +104,17 @@
 .public-site[data-document-grid] > footer.contact-section {
   padding-block: var(--space-half);
 }
+.public-site[data-document-grid] > main.shell > .editorial-hero {
+  min-height: 0;
+  padding-block-end: 0;
+}
 @media (min-width: 48rem) {
   .public-site[data-document-grid] > main.shell > :is(.section, .editorial-hero),
   .public-site[data-document-grid] > footer.contact-section {
     padding-block: var(--grid-unit);
+  }
+  .public-site[data-document-grid] > main.shell > .editorial-hero {
+    min-height: var(--grid-box-height, 0px);
   }
   .public-site[data-document-grid] > main.shell > .work-section {
     padding-block: var(--space-half);

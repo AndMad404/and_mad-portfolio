@@ -4,7 +4,7 @@
   flex-direction: column;
   justify-content: center;
   gap: var(--space-eighth);
-  padding-block: var(--space-eighth);
+  padding-block: 0;
 }
 .public-site .header nav a[aria-current] { text-decoration: none; }
 .nav-label {
