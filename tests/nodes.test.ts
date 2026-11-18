@@ -68,6 +68,7 @@ test("el pintado omite viewports vacíos y se recupera sin canvas de dimensión 
     query: { matches: true }, pausedRef: { current: false }, ready: false, pulse: null,
     host: { dataset: {} }, surface: { width: 0, height: 0 }, base: { width: 0, height: 0 },
     context, baseContext: context, DOCUMENT_BOOT, documentReveal, pointOf,
+    nodeOff: () => "#4682b4",
     schedule() { scheduled++; },
   };
   runInNewContext(paint, state);

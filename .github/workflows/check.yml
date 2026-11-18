@@ -12,5 +12,32 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Verify portfolio (edition tests deferred)
-        run: npm run verify
+      - name: Normalize line endings
+        run: npm run normalize:eol
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Test portfolio (edition tests deferred)
+        shell: bash
+        env:
+          NODE_OPTIONS: --test-reporter=dot
+        run: |
+          failed=0
+          for suite in content nodes animations transitions; do
+            log="$RUNNER_TEMP/portfolio-test-$suite.log"
+            echo "::group::test:$suite"
+            if npm run "test:$suite" 2>&1 | tee "$log"; then
+              echo "::endgroup::"
+            else
+              echo "::endgroup::"
+              echo "::error title=test:$suite failed::See the job summary for the failing tests and error details."
+              {
+                printf '### Failed: `npm run test:%s`\n\n' "$suite"
+                sed 's/^/    /' "$log"
+                printf '\n'
+              } >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+            fi
+          done
+          exit "$failed"
+      - name: Build and verify public routes
+        run: npm run build

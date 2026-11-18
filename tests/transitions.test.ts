@@ -33,7 +33,10 @@ test("cuatro controles y modales agrupan experiencias y resuelven fragmentos his
       assert.match(modal, /class="entry-modal entry-modal-folder"/);
       assert.equal([...modal.matchAll(/<h2\b/g)].length, 1, "Un único título en la pestaña de carpeta");
       assert.ok(modal.includes(`<h2 id="${area.modalId}-title" class="area-folder-title">${area.title}</h2>`));
-      assert.match(modal, /class="area-modal-actions"><button[^>]*aria-label="Volver a los casos">Volver <svg/);
+      assert.ok(
+        /class="area-modal-actions"><button[^>]*aria-label="Volver a los casos"><span[^>]*>Volver<\/span>\s*<svg/.test(modal),
+        "El botón del modal conserva el nombre accesible, la etiqueta visible Volver y la flecha",
+      );
       assert.doesNotMatch(modal, /Cerrar|×|class="entry-title"/);
       assert.ok(modal.indexOf('class="area-modal-actions"') < modal.indexOf('class="entry-parallax-window"'));
 
