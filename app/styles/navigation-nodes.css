@@ -21,7 +21,7 @@
 }
 .nav-node path {
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: var(--blueprint-line-width);
   vector-effect: non-scaling-stroke;
 }
 .nav-node circle { fill: var(--color-sky); }

@@ -36,7 +36,7 @@
 .folder-silhouette path {
   fill: var(--folder-color);
   stroke: #17242e66;
-  stroke-width: 1;
+  stroke-width: var(--blueprint-line-width);
 }
 .folder-layer .folder-silhouette {
   /* Rear folders expose only their tabs, never a body beyond the front edge. */

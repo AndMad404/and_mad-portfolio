@@ -52,7 +52,7 @@
   transform: rotate(-90deg);
   filter: drop-shadow(0 0 3px #87ceeb88);
 }
-.entry-modal-arrow path { stroke: var(--color-steel); stroke-width: 1.5; }
+.entry-modal-arrow path { stroke: var(--color-steel); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
 .entry-modal-arrow circle { fill: var(--color-sky); }
 .entry-modal-arrow .travelling-node { filter: drop-shadow(0 0 2px var(--color-sky)); }
 .entry-modal-scroll {

@@ -18,6 +18,7 @@
   --font-sans: Arial, Helvetica, sans-serif;
 }
 :root {
+  --blueprint-line-width: 1px;
   /* --grid-unit is supplied from ENERGY_CELL by both app entry points. */
   --space-eighth: calc(var(--grid-unit) / 8);
   --space-quarter: calc(var(--grid-unit) / 4);

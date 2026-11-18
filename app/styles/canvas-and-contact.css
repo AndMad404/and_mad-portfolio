@@ -119,7 +119,7 @@
     touch-action: manipulation;
   }
   .back-to-top svg { width: 100%; height: 100%; filter: drop-shadow(0 0 3px #87ceeb88); }
-  .back-to-top path { stroke: var(--color-steel); stroke-width: 1.5; }
+  .back-to-top path { stroke: var(--color-steel); stroke-width: var(--blueprint-line-width); vector-effect: non-scaling-stroke; }
   .back-to-top circle { fill: currentColor; }
   .public-site .back-to-top:focus-visible { outline: 3px solid var(--color-sky); outline-offset: 3px; }
   .public-site > footer.shell { margin-bottom: var(--space-2); }

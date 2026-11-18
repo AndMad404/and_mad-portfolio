@@ -21,6 +21,8 @@
     "test:edition:unverified": "tsx --test tests/edition/backend.unverified.ts tests/edition/connector.unverified.ts tests/edition/preview.unverified.ts",
     "db:local": "wrangler d1 migrations apply editorial --local --config wrangler.studio.jsonc",
     "connector": "tsx connector/main.ts",
+    "normalize:eol": "node scripts/normalize-line-endings.mjs",
+    "preverify": "npm run normalize:eol",
     "verify": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
