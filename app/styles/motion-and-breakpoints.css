@@ -48,20 +48,6 @@
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  /* Includes blocks visible below the hero on tall/4K viewports. The observer
-     skips their first report so hydration never restarts this entrance. */
-  [data-reveal],
-  .detail-block,
-  .evidence-gallery,
-  .detail-contact {
-    animation: page-enter 800ms cubic-bezier(0.22, 1, 0.36, 1) 300ms backwards;
-  }
-  .project-card:nth-child(3n + 2) {
-    animation-delay: 380ms;
-  }
-  .project-card:nth-child(3n + 3) {
-    animation-delay: 460ms;
-  }
   /* Initial entry runs from the first styled paint, independently of hydration. */
   .hero-copy > * {
     animation: page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
@@ -120,21 +106,6 @@
   .brand:is(:hover, :focus-visible) .pixel-mark,
   .section-heading:hover .pixel-mark {
     animation: pixel-step 240ms steps(2, end) 1;
-  }
-  ::view-transition-group(*) {
-    animation-duration: 220ms;
-    animation-timing-function: ease-out;
-  }
-  ::view-transition-old(root) {
-    animation: none;
-  }
-  ::view-transition-new(root) {
-    animation: content-appear 180ms ease both;
-  }
-  ::view-transition-group(site-header),
-  ::view-transition-old(site-header),
-  ::view-transition-new(site-header) {
-    animation: none;
   }
 }
 /* Mobile is the base. These widths are CSS pixels, independent of screen DPR. */
@@ -253,11 +224,6 @@
   .public-site .stage-card[data-active="true"],
   .public-site .service-row:hover .service-arrow {
     transform: none;
-  }
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
   }
 }
 

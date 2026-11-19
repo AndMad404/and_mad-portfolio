@@ -182,11 +182,7 @@
   .hero-copy > *,
   .editorial-demo > *,
   .back-link,
-  .detail-heading > *,
-  [data-reveal],
-  .detail-block,
-  .evidence-gallery,
-  .detail-contact {
+  .detail-heading > * {
     animation-delay: var(--intro-delay, 0ms);
     animation-duration: calc(var(--intro-end) - var(--intro-delay, 0ms));
   }
@@ -216,18 +212,6 @@
   }
   .editorial-demo > .sample-note {
     --intro-delay: 420ms;
-  }
-  [data-reveal],
-  .detail-block,
-  .evidence-gallery,
-  .detail-contact {
-    --intro-delay: 300ms;
-  }
-  .project-card:nth-child(3n + 2) {
-    --intro-delay: 380ms;
-  }
-  .project-card:nth-child(3n + 3) {
-    --intro-delay: 460ms;
   }
   .detail-heading > .eyebrow {
     --intro-delay: 60ms;

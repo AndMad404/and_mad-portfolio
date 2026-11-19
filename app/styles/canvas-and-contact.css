@@ -28,9 +28,9 @@
 }
 
 
-/* Real cutouts: the viewport blueprint is visible through the paper, in one coordinate space. */
+/* The paper scrolls with its sections while the blueprint stays fixed. */
 .blueprint-paper-plane {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;

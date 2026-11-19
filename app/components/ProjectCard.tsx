@@ -1,9 +1,8 @@
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
-import { Link, useLocation, useNavigate, useViewTransitionState } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { EntryView } from "../../shared/EntryView";
 import { CaseCover } from "../../shared/CaseCover";
 import { entryPath, type Entry } from "../../shared/contracts";
-import { useReducedMotion } from "../../shared/motion";
 import { areaExperienceId, areaStories, caseAreas, englishAreas, type CaseArea, type resolveCaseFragment } from "../content";
 
 const caseLabels: Record<string, string> = {
@@ -22,9 +21,9 @@ const caseLabels: Record<string, string> = {
 };
 
 
-function ProjectSummary({ entry, number, transition = false }: { entry: Entry; number: number; transition?: boolean }) {
+function ProjectSummary({ entry, number }: { entry: Entry; number: number }) {
   return <>
-    <div className="project-visual"><CaseCover entry={entry} transition={transition} /></div>
+    <div className="project-visual"><CaseCover entry={entry} /></div>
         <div className="project-meta">
           <span>
             {String(number).padStart(2, "0")} /{" "}
@@ -56,11 +55,9 @@ export function ProjectCard({
   number: number;
   expanded?: boolean;
 }) {
-  const reduced = useReducedMotion();
   const location = useLocation();
   const navigate = useNavigate();
   const target = `/${location.search}#caso-${entry.slug}`;
-  const transitioning = useViewTransitionState(target);
   return (
     <article className="project-card" data-reveal data-parallax="folder">
       <Link
@@ -74,17 +71,16 @@ export function ProjectCard({
           event.preventDefault();
           navigate(target, {
             preventScrollReset: true,
-            viewTransition: !reduced,
             state: { entryModal: true },
           });
         }}
       >
-        <ProjectSummary entry={entry} number={number} transition={transitioning && !reduced && !expanded} />
+        <ProjectSummary entry={entry} number={number} />
       </Link>
-      <EntryModal entry={entry} open={expanded} transition={transitioning && !reduced}
+      <EntryModal entry={entry} open={expanded}
         onRequestClose={() => {
           if (location.state?.entryModal) navigate(-1);
-          else navigate(`/${location.search}#proyectos`, { replace: true, preventScrollReset: true, viewTransition: !reduced });
+          else navigate(`/${location.search}#proyectos`, { replace: true, preventScrollReset: true });
         }} />
     </article>
   );
@@ -120,7 +116,6 @@ export function AreaCard({ area, entries, selected, english = false }: {
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const reduced = useReducedMotion();
   const landscape = useSyncExternalStore(subscribeToOrientation,
     () => window.matchMedia(landscapeQuery).matches, () => false);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -150,7 +145,7 @@ export function AreaCard({ area, entries, selected, english = false }: {
             aria-label={english ? `Learn more about ${copy.title}` : `Conocer más: ${area.label}`}
             aria-haspopup="dialog" aria-controls={area.modalId}
             onClick={() => {
-              navigate(target, { preventScrollReset: true, viewTransition: !reduced, state: { entryModal: true } });
+              navigate(target, { preventScrollReset: true, state: { entryModal: true } });
             }}>{english ? "Learn more" : "Conocer más"}</button>
           <div className="area-summary work-type-details">
             <AreaResults area={area} english={english} inline />

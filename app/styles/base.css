@@ -51,7 +51,6 @@ html, body {
 .public-site .header {
   background: var(--paper);
   border-color: var(--line);
-  view-transition-name: site-header;
 }
 .public-site .header .shell {
   min-height: 6.5rem;

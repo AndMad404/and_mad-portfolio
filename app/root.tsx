@@ -165,7 +165,7 @@ export default function Root() {
     let frame = requestAnimationFrame(() => {
       const target = document.getElementById(location.hash.slice(1));
       if (!target) return;
-      target.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" });
+      // ScrollRestoration handles the fragment. Focus without starting a second scroll.
       const focus = target.matches("summary") ? target : target.querySelector<HTMLElement>(
         target.matches("details") ? ".entry-title" : "h2, h1",
       );
@@ -175,7 +175,7 @@ export default function Root() {
       }
     });
     return () => cancelAnimationFrame(frame);
-  }, [location.hash, location.key, navigationType, reduced]);
+  }, [location.hash, location.key, navigationType]);
   return (
     <div className="public-site">
       <BlueprintBackground />
@@ -188,7 +188,6 @@ export default function Root() {
           <Link
             className="brand"
             to={homePath}
-            viewTransition={!reduced}
             aria-label={english ? "Andrés Madrigal — And_Mad — home" : "Andrés Madrigal — And_Mad — inicio"}
           >
             <span className="pixel-mark" aria-hidden="true" />
@@ -223,7 +222,6 @@ export default function Root() {
               <Link
                 key={section}
                 to={`${homePath}#${section}`}
-                viewTransition={!reduced}
                 onClick={event => {
                   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                   if (atHome && activeMenuSection === section && main.current)
@@ -281,7 +279,7 @@ export default function Root() {
           </a>
         </div>
         <div className="footer-signature">
-          <Link className="brand" to={homePath} viewTransition={!reduced}>and_mad</Link>
+          <Link className="brand" to={homePath}>and_mad</Link>
           <span>{english ? "Web development, content and quality · Costa Rica" :
             "Desarrollo web, contenido y calidad · Costa Rica"}</span>
         </div>

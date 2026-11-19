@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useLayoutEffect, type RefObject } from "react";
 import { CELL, documentLayout, latticeTracks } from "./lattice";
 
 export type DocumentGrid = ReturnType<typeof documentLayout>;
@@ -17,7 +17,7 @@ export function subscribeDocumentGrid(document: Document, listener: (grid: Docum
  * No screen names or independent canvas grid. Scroll only changes the projection.
  */
 export function useDocumentGrid(root: RefObject<HTMLElement | null>) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const main = root.current, site = main?.parentElement;
     if (!main || !site) return;
     const doc = main.ownerDocument;
@@ -25,10 +25,16 @@ export function useDocumentGrid(root: RefObject<HTMLElement | null>) {
     const grids = ".hero-copy, .project-grid, .work-type-body, .profile-layout, .service-row, .profile-context, .delivery-steps";
     const boxes = ".section-heading, .service-row, .work-type-title, .work-type-window, .work-type-body, .project-card.work-type, .profile-method-intro, .profile-context, .profile-context > article, .profile-process, .delivery-steps > li, :scope > section";
     const marked = new Set<HTMLElement>();
+    const observed = new Map<HTMLElement, string>();
+    const header = site.querySelector<HTMLElement>(":scope > header");
+    const size = (element: HTMLElement) => `${element.offsetWidth}:${element.offsetHeight}`;
+    const viewport = () => `${doc.documentElement.clientWidth}:${window.innerHeight}:${devicePixelRatio}`;
+    let measuredViewport = "";
     function update() {
       frame = null;
       const width = doc.documentElement.clientWidth;
       if (width <= 0) return;
+      measuredViewport = viewport();
       const inset = Number(getComputedStyle(site!).getPropertyValue("--grid-inset-cells")) || 0;
       const before = documentLayout({ width, height: Math.max(1, doc.documentElement.scrollHeight), dpr: devicePixelRatio }, inset, main!.getBoundingClientRect().top + scrollY);
       site!.style.setProperty("--grid-shell-left", `${before.shellLeft}px`);
@@ -72,35 +78,45 @@ export function useDocumentGrid(root: RefObject<HTMLElement | null>) {
           }
         }
       }
-      elements.sort((a, b) => a.contains(b) ? 1 : b.contains(a) ? -1 : 0);
-      for (const element of elements) {
+      for (const element of elements.reverse()) {
         const height = element.getBoundingClientRect().height;
         element.style.setProperty("--grid-box-height", `${Math.ceil((height - .01) / CELL) * CELL}px`);
         element.dataset.gridBox = "true";
       }
       const grid = documentLayout({ width, height: Math.max(1, doc.documentElement.scrollHeight), dpr: devicePixelRatio }, inset, main!.getBoundingClientRect().top + scrollY);
       layouts.set(doc, grid);
-      for (const element of marked) resize.observe(element);
+      for (const element of marked) {
+        if (!site!.contains(element)) marked.delete(element);
+      }
+      const targets = new Set([main!, ...marked, ...(header ? [header] : [])]);
+      for (const element of observed.keys()) {
+        if (!targets.has(element)) { resize.unobserve(element); observed.delete(element); }
+      }
+      // Record committed sizes. The observer will also report our own writes.
+      for (const element of targets) {
+        if (!observed.has(element)) resize.observe(element, { box: "border-box" });
+        observed.set(element, size(element));
+      }
       for (const listener of listeners.get(doc) ?? []) listener(grid);
       window.dispatchEvent(new Event("portfolio-surface-change"));
+      viewportChanged();
     }
     function schedule() { if (frame === null) frame = requestAnimationFrame(update); }
-    const resize = new ResizeObserver(schedule);
-    resize.observe(doc.documentElement); resize.observe(main);
-    const header = site.querySelector(":scope > header");
-    if (header) resize.observe(header);
+    function viewportChanged() { if (measuredViewport !== viewport()) schedule(); }
+    const resize = new ResizeObserver(entries => {
+      if (entries.some(({ target }) => target instanceof HTMLElement &&
+        observed.has(target) && observed.get(target) !== size(target))) schedule();
+    });
     const mutations = new MutationObserver(schedule);
     mutations.observe(main, { childList: true, subtree: true, characterData: true });
-    window.addEventListener("resize", schedule);
-    window.visualViewport?.addEventListener("resize", schedule);
+    window.addEventListener("resize", viewportChanged);
     doc.fonts?.addEventListener("loadingdone", schedule);
     main.addEventListener("load", schedule, true);
     update();
     return () => {
       if (frame !== null) cancelAnimationFrame(frame);
       resize.disconnect(); mutations.disconnect();
-      window.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
+      window.removeEventListener("resize", viewportChanged);
       doc.fonts?.removeEventListener("loadingdone", schedule);
       main.removeEventListener("load", schedule, true);
       delete site.dataset.documentGrid; layouts.delete(doc);

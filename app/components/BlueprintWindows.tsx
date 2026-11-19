@@ -30,23 +30,26 @@ export function BlueprintWindows({ root, pathname }: {
   useEffect(() => {
     const container = root.current;
     const shape = path.current;
-    if (!container || !shape) return;
+    const plane = shape?.ownerSVGElement;
+    if (!container || !shape || !plane) return;
     let frame: number | null = null;
     let previous = "";
     const marked = new Set<HTMLElement>();
-    const box = (element: Element) => {
-      const r = element.getBoundingClientRect();
-      return { x: r.left, y: r.top, width: r.width, height: r.height };
-    };
     function paint() {
       frame = null;
       if (document.visibilityState === "hidden") return;
+      const origin = plane!.getBoundingClientRect();
+      const box = (element: Element) => {
+        const r = element.getBoundingClientRect();
+        return { x: r.left - origin.left, y: r.top - origin.top, width: r.width, height: r.height };
+      };
       const covers = [...container!.querySelectorAll<HTMLElement>(".cover-system, .work-type-window, .editorial-hero")]
         .filter(element => !element.closest("dialog, .folder-lens-layer, details:not([open])") && element.getClientRects().length > 0);
       for (const element of marked) {
         if (!covers.includes(element)) { delete element.dataset.blueprintWindow; marked.delete(element); }
       }
       for (const element of covers) {
+        if (marked.has(element)) continue;
         element.dataset.blueprintWindow = "true";
         marked.add(element);
       }
@@ -56,16 +59,16 @@ export function BlueprintWindows({ root, pathname }: {
       });
       const sections = [...container!.querySelectorAll<HTMLElement>(":scope > section:not(.editorial-hero)")];
       const next = container!.querySelector(":scope > .editorial-hero") ? sections.map(section => {
-        const { x, y, width: w, height: h } = box(section);
+        const bounds = box(section);
+        const { x, y, width: w, height: h } = bounds;
         const r = Math.min(16, w / 2, h / 2);
         const outline = `M${x+r} ${y}h${w-2*r}q${r} 0 ${r} ${r}v${h-2*r}q0 ${r} ${-r} ${r}h${2*r-w}q${-r} 0 ${-r} ${-r}v${2*r-h}q0 ${-r} ${r} ${-r}Z`;
         // Only descendants can cut this section. Hidden/foreign covers must never expose text.
-        return outline + ownedWindowPaths(box(section), windows.map((bounds, index) => ({
+        return outline + ownedWindowPaths(bounds, windows.map((bounds, index) => ({
           bounds, owned: section.contains(covers[index]!),
         })));
       }).join(" ") : paperWindowPath(box(container!), windows);
       if (next !== previous) { shape!.setAttribute("d", next); previous = next; }
-      container!.dataset.blueprintMasked = "true";
       // Follow finite entrance animations; stationary frames and background loops need no polling.
       const moving = container!.getAnimations?.({ subtree: true }).some(animation => {
         const target = (animation.effect as KeyframeEffect | null)?.target;
@@ -75,30 +78,26 @@ export function BlueprintWindows({ root, pathname }: {
       if (moving) schedule();
     }
     function schedule() { if (frame === null) frame = requestAnimationFrame(paint); }
-    function synchronize() {
-      if (frame !== null) cancelAnimationFrame(frame);
-      paint();
+    function animate(event: AnimationEvent) {
+      if (event.animationName === "page-enter") schedule();
     }
     const resize = new ResizeObserver(schedule);
     resize.observe(container);
     const mutation = new MutationObserver(schedule);
     mutation.observe(container, { childList: true, subtree: true });
-    window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
-    window.visualViewport?.addEventListener("resize", schedule);
-    window.visualViewport?.addEventListener("scroll", schedule);
-    window.addEventListener("portfolio-surface-change", synchronize);
-    container.addEventListener("animationstart", schedule);
+    document.addEventListener("visibilitychange", schedule);
+    window.addEventListener("portfolio-surface-change", schedule);
+    container.addEventListener("animationstart", animate);
     paint();
+    container.dataset.blueprintMasked = "true";
     return () => {
       if (frame !== null) cancelAnimationFrame(frame);
       resize.disconnect(); mutation.disconnect();
-      window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("scroll", schedule);
-      window.removeEventListener("portfolio-surface-change", synchronize);
-      container.removeEventListener("animationstart", schedule);
+      document.removeEventListener("visibilitychange", schedule);
+      window.removeEventListener("portfolio-surface-change", schedule);
+      container.removeEventListener("animationstart", animate);
       delete container.dataset.blueprintMasked;
       for (const element of marked) delete element.dataset.blueprintWindow;
       shape.removeAttribute("d");

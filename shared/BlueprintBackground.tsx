@@ -98,7 +98,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     if (variant !== "page" || !element?.closest(".public-site") || !surface) return;
     const context = surface.getContext("2d");
     if (!context) return;
-    let grid: { lattice: ReturnType<typeof createLattice>; width: number; height: number;
+    let grid: { lattice: ReturnType<typeof createLattice>; width: number; height: number; ratio: number; rem: number;
       metrics: ReturnType<typeof viewportGridMetrics> } | null = null;
     let frame: number | null = null;
     const host = element.parentElement!;
@@ -132,7 +132,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       frame = null;
       if (!grid) return;
       const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
-      // Layout can collapse between resize and this frame. Wait for resize to resume.
+      // A frame can arrive before resize when the viewport collapses.
       if (width <= 0 || height <= 0) { previous = 0; dirty = true; return; }
       const ratio = window.devicePixelRatio || 1;
       const pixelWidth = Math.max(1, Math.round(width * ratio)), pixelHeight = Math.max(1, Math.round(height * ratio));
@@ -249,7 +249,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       inputFrame = null;
       if (!ready || clock < DOCUMENT_BOOT.pointerStart || !grid || !latest || query.matches || pausedRef.current || document.visibilityState === "hidden") { release(); return; }
       const { x, y } = latest;
-      if (x < 0 || y < 0 || x >= document.documentElement.clientWidth || y >= document.documentElement.clientHeight || document.querySelector("dialog[open]")) { release(); return; }
+      if (x < 0 || y < 0 || x >= grid.width || y >= grid.height || document.querySelector("dialog[open]")) { release(); return; }
       // A 44px square at the default root size, independent of visible node size.
       const node = nodeAt(grid.lattice, x, y, grid.metrics.pointerReach);
       if (!node) { release(); return; }
@@ -265,7 +265,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     function move(event: PointerEvent) {
       if (!event.isPrimary || (event.pointerType !== "mouse" && !event.buttons)) return;
       latest = { x: event.clientX, y: event.clientY };
-      if (inputFrame === null) inputFrame = requestAnimationFrame(hitPointer);
+      refreshPointer();
     }
     function down(event: PointerEvent) {
       move(event);
@@ -277,14 +277,22 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     }
     function leave() { latest = null; release(); }
     function endDrag(event: PointerEvent) { if (event.pointerType !== "mouse") leave(); }
-    function refresh() { if (latest && ready) hitPointer(); schedule(); }
+    function refreshPointer() { if (latest && ready && inputFrame === null) inputFrame = requestAnimationFrame(hitPointer); }
     function resize() {
       const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
-      if (width <= 0 || height <= 0) return;
+      if (width <= 0 || height <= 0) {
+        grid = null;
+        previous = 0;
+        return;
+      }
+      const ratio = window.devicePixelRatio || 1;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      if (grid?.width === width && grid.height === height && grid.ratio === ratio && grid.rem === rem) return;
       const metrics = viewportGridMetrics(rem);
-      grid = { lattice: createLattice({ width, height, dpr: window.devicePixelRatio || 1 }, { cell: metrics.cell }), width, height, metrics };
-      activity = null; pulse = null; flowBand = ""; dirty = true; refresh();
+      grid = { lattice: createLattice({ width, height, dpr: ratio }, { cell: metrics.cell }), width, height, ratio, rem, metrics };
+      activity = null; pulse = null; flowBand = ""; dirty = true;
+      refreshPointer();
+      schedule();
     }
     function suspend() { previous = 0; dirty = true; if (query.matches || pausedRef.current || document.visibilityState === "hidden") { pulse = null; leave(); } schedule(); }
     // One startup gate, based on real completion rather than a device-specific timeout.
@@ -312,14 +320,14 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     resize();
     window.addEventListener("resize", resize);
     window.visualViewport?.addEventListener("resize", resize);
-    window.addEventListener("scroll", refresh, { passive: true });
+    window.addEventListener("scroll", refreshPointer, { passive: true });
     document.addEventListener("pointerleave", leave); document.addEventListener("pointercancel", leave);
     document.addEventListener("pointerup", endDrag);
     window.addEventListener("blur", leave);
     document.addEventListener("visibilitychange", suspend); query.addEventListener("change", suspend);
     window.addEventListener("blueprint-playstate", suspend);
     return () => {
-      disposed = true; startup.abort(); window.removeEventListener("resize", resize); window.visualViewport?.removeEventListener("resize", resize); window.removeEventListener("scroll", refresh);
+      disposed = true; startup.abort(); window.removeEventListener("resize", resize); window.visualViewport?.removeEventListener("resize", resize); window.removeEventListener("scroll", refreshPointer);
       document.removeEventListener("pointermove", move); document.removeEventListener("pointerdown", down);
       document.removeEventListener("pointerleave", leave); document.removeEventListener("pointercancel", leave);
       document.removeEventListener("pointerup", endDrag);

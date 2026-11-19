@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { useReducedMotion } from "../../shared/motion";
 
 /** Ordered groups begin with their heading, then finish each row before the next. */
@@ -111,6 +111,7 @@ export function usePageMotion(
   pathname: string,
 ) {
   const reduced = useReducedMotion();
+  const revealed = useRef(new WeakSet<Element>());
   useEffect(() => {
     const container = root.current;
     if (
@@ -121,7 +122,6 @@ export function usePageMotion(
     )
       return;
 
-    document.documentElement.dataset.pageMotion = "on";
     const seen = new WeakSet<Element>();
     const pending = new Set<Element>();
     // Present when the effect ran: their first report describes content that
@@ -140,10 +140,11 @@ export function usePageMotion(
         let stagger = 0;
         for (const entry of entries) {
           const painted = mounted.delete(entry.target);
-          if (!entry.isIntersecting) {
-            cancel(entry.target);
-            continue;
-          }
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          pending.delete(entry.target);
+          if (revealed.current.has(entry.target)) continue;
+          revealed.current.add(entry.target);
           // Replaying visible content would make it vanish and fade back in.
           if (
             painted ||
@@ -165,8 +166,10 @@ export function usePageMotion(
           );
           active.set(entry.target, animation);
           window.dispatchEvent(new Event("portfolio-surface-change"));
-          // Drop the animation effect so responsive CSS and other interactions own the element again.
-          animation.onfinish = () => cancel(entry.target);
+          animation.onfinish = () => {
+            cancel(entry.target);
+            window.dispatchEvent(new Event("portfolio-surface-change"));
+          };
         }
       },
       { threshold: 0.05 },
@@ -174,7 +177,7 @@ export function usePageMotion(
 
     function observeNewContent(initial = false) {
       container!.querySelectorAll<HTMLElement>(targets).forEach((element) => {
-        if (seen.has(element)) return;
+        if (seen.has(element) || revealed.current.has(element)) return;
         seen.add(element);
         pending.add(element);
         if (initial) mounted.add(element);
@@ -207,7 +210,6 @@ export function usePageMotion(
       mutations.disconnect();
       container.removeEventListener("focusin", revealFocusedContent);
       for (const element of active.keys()) cancel(element);
-      delete document.documentElement.dataset.pageMotion;
     };
   }, [root, pathname, reduced]);
 }
@@ -260,6 +262,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
   useEffect(() => {
     const container = root.current;
     if (!container || pathname !== "/") return;
+    const coarsePointer = window.matchMedia("(pointer: coarse)");
     document.documentElement.dataset.blockNavigation = "on";
     let frame: number | null = null;
     let settle: ReturnType<typeof setTimeout> | undefined;
@@ -307,7 +310,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       if (target !== undefined) go(target);
     }
     function wheel(event: WheelEvent) {
-      if (excluded(event.target) || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return;
+      if (coarsePointer.matches || excluded(event.target) || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return;
       anchorNavigation = false;
       event.preventDefault();
       if (busy) return;
@@ -319,23 +322,23 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       advance(Math.sign(accumulated)); accumulated = 0;
     }
     function key(event: KeyboardEvent) {
-      if (excluded(event.target) || event.altKey || event.ctrlKey || event.metaKey || !["PageDown", "PageUp"].includes(event.key)) return;
+      if (coarsePointer.matches || excluded(event.target) || event.altKey || event.ctrlKey || event.metaKey || !["PageDown", "PageUp"].includes(event.key)) return;
       anchorNavigation = false;
       event.preventDefault();
       if (!busy) advance(event.key === "PageDown" ? 1 : -1);
     }
     function snap() {
-      if (busy || dragging || anchorNavigation || excluded(null)) return;
+      if (coarsePointer.matches || busy || dragging || anchorNavigation || excluded(null)) return;
       const values = stops();
       const nearest = values.reduce((best, at) => Math.abs(at - window.scrollY) < Math.abs(best - window.scrollY) ? at : best, values[0] ?? 0);
       if (Math.abs(nearest - window.scrollY) > 2) go(nearest);
     }
     function scroll() {
-      if (busy || anchorNavigation) return;
+      if (coarsePointer.matches || busy || anchorNavigation) return;
       clearTimeout(settle); settle = setTimeout(snap, 180);
     }
     function down(event: PointerEvent) {
-      if (excluded(event.target)) return;
+      if (coarsePointer.matches || event.pointerType === "touch" || excluded(event.target)) return;
       anchorNavigation = false;
       cancel(); dragging = true;
       mouse = event.pointerType === "mouse" && event.button === 0 && event.target instanceof Element &&
