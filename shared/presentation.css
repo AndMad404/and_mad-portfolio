@@ -442,13 +442,14 @@
   15%, 85% { opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
+  .blueprint-background { --blueprint-mask-duration: 1800ms; }
   .blueprint-node-field, .blueprint-line-field {
     mask-image: radial-gradient(ellipse at center, #000 42%, #000b 52%, transparent 68%);
     mask-repeat: no-repeat;
     mask-position: center;
-    animation: blueprint-boot 1800ms cubic-bezier(.65, 0, .35, 1) both;
+    animation: blueprint-boot var(--blueprint-mask-duration) cubic-bezier(.65, 0, .35, 1) both;
   }
-  .blueprint-line-field { animation-delay: 1800ms; }
+  .blueprint-line-field { animation-delay: var(--blueprint-mask-duration); }
   .blueprint-signal {
     animation: blueprint-travel var(--travel-duration) cubic-bezier(.65, 0, .35, 1) var(--travel-delay) infinite,
       blueprint-signal-light var(--travel-duration) ease-in-out var(--travel-delay) infinite;

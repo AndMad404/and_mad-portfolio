@@ -1,15 +1,59 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { useReducedMotion } from "../../shared/motion";
 
+const energySequence = {
+  titleLeadMs: 120,
+  textDurationMs: 600,
+  nodeDurationMs: 900,
+  visibleRatio: .6,
+  bottomInsetPercent: 10,
+} as const;
+
+const firstRowMs = energySequence.titleLeadMs + energySequence.textDurationMs;
+
+// Rendered with the public shell so CSS and JS use the same timeline from first paint.
+export const energySequenceStyle = {
+  "--energy-sequence-lead": `${energySequence.titleLeadMs}ms`,
+  "--energy-text-duration": `${energySequence.textDurationMs}ms`,
+  "--energy-node-duration": `${energySequence.nodeDurationMs}ms`,
+};
+
+const pageReveal = {
+  visibleRatio: .05,
+  initialOpacity: .15,
+  distancePx: 48,
+  durationMs: 850,
+  staggerMs: 80,
+  maxStaggerMs: 240,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const;
+
+const blockNavigation = {
+  durationMs: 600,
+  unlockMs: 180,
+  wheelResetMs: 180,
+  scrollSettleMs: 180,
+  wheelThresholdPx: 45,
+  wheelLinePx: 16,
+  dragThresholdPx: 48,
+  dragVerticalRatio: 1.2,
+  tolerancePx: 2,
+  fallbackHeaderPx: 100,
+  readingInsetPx: 28,
+  readingStepRatio: .85,
+  startInsetPx: 12,
+  endInsetPx: 16,
+} as const;
+
 /** Ordered groups begin with their heading, then finish each row before the next. */
 export function orderEnergySequences(rows: HTMLElement[]) {
-  let cursor = 720;
+  let cursor = firstRowMs;
   for (const row of rows) {
     row.style.setProperty("--energy-title-delay", `${cursor}ms`);
-    row.style.setProperty("--energy-node-delay", `${cursor + 600}ms`);
-    cursor += 1500;
+    row.style.setProperty("--energy-node-delay", `${cursor + energySequence.textDurationMs}ms`);
+    cursor += energySequence.textDurationMs + energySequence.nodeDurationMs;
     row.style.setProperty("--energy-description-delay", `${cursor}ms`);
-    cursor += 600;
+    cursor += energySequence.textDurationMs;
   }
 }
 
@@ -28,7 +72,7 @@ export function observeEnergySequences(root: HTMLElement) {
   const headerHeight = Math.ceil(root.ownerDocument.querySelector(".public-site > .header")?.getBoundingClientRect().height ?? 0);
   const observer = new IntersectionObserver(entries => {
     for (const { target, isIntersecting, intersectionRatio } of entries) {
-      if (!isIntersecting || intersectionRatio < .6) continue;
+      if (!isIntersecting || intersectionRatio < energySequence.visibleRatio) continue;
       if (ordered) {
         if (rows.some(row => !row.dataset.energyPlayed)) {
           root.classList.add("is-section-energized");
@@ -42,7 +86,7 @@ export function observeEnergySequences(root: HTMLElement) {
       if (!row.dataset.energyPlayed) row.classList.add("is-energized");
       observer.unobserve(target);
     }
-  }, { threshold: .6, rootMargin: `-${headerHeight}px 0px -10% 0px` });
+  }, { threshold: energySequence.visibleRatio, rootMargin: `-${headerHeight}px 0px -${energySequence.bottomInsetPercent}% 0px` });
   const complete = (event: AnimationEvent) => {
     if (event.animationName !== "energy-text-glow" || !(event.target instanceof Element) ||
       !event.target.matches("[data-energy-description]")) return;
@@ -154,13 +198,13 @@ export function usePageMotion(
             continue;
           const animation = entry.target.animate(
             [
-              { opacity: 0.15, translate: upward ? "0 -48px" : "0 48px" },
+              { opacity: pageReveal.initialOpacity, translate: `0 ${upward ? -pageReveal.distancePx : pageReveal.distancePx}px` },
               { opacity: 1, translate: "0 0" },
             ],
             {
-              duration: 850,
-              delay: Math.min(stagger++ * 80, 240),
-              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+              duration: pageReveal.durationMs,
+              delay: Math.min(stagger++ * pageReveal.staggerMs, pageReveal.maxStaggerMs),
+              easing: pageReveal.easing,
               fill: "backwards",
             },
           );
@@ -172,7 +216,7 @@ export function usePageMotion(
           };
         }
       },
-      { threshold: 0.05 },
+      { threshold: pageReveal.visibleRatio },
     );
 
     function observeNewContent(initial = false) {
@@ -224,7 +268,7 @@ export function visibleNavigationSection(
   sections: { id: string; top: number; bottom: number }[], header: number, viewport: number,
   page?: { scroll: number; height: number },
 ) {
-  if (page && page.scroll + viewport >= page.height - 2 && sections.some(section => section.id === "contacto")) return "contacto";
+  if (page && page.scroll + viewport >= page.height - blockNavigation.tolerancePx && sections.some(section => section.id === "contacto")) return "contacto";
   let active = "", largest = 0;
   for (const section of sections) {
     if (page && section.id === "contacto") continue;
@@ -238,12 +282,15 @@ export function visibleNavigationSection(
 export function blockScrollStops(blocks: { top: number; height: number }[], viewport: number, header: number, maxScroll: number) {
   const clamp = (value: number) => Math.max(0, Math.min(maxScroll, value));
   const stops = [0, maxScroll];
-  const step = Math.max(1, (viewport - header - 28) * .85);
+  const readingHeight = viewport - header - blockNavigation.readingInsetPx;
+  const step = Math.max(1, readingHeight * blockNavigation.readingStepRatio);
   for (const { top, height } of blocks) {
-    const start = clamp(centeredBlockScroll(top, height, viewport, header + 12));
-    const end = height > viewport - header - 28 ? clamp(top + height - viewport + 16) : start;
+    const start = clamp(centeredBlockScroll(top, height, viewport, header + blockNavigation.startInsetPx));
+    const end = height > readingHeight
+      ? clamp(top + height - viewport + blockNavigation.endInsetPx)
+      : start;
     stops.push(start);
-    for (let at = start + step; at < end - 2; at += step) stops.push(at);
+    for (let at = start + step; at < end - blockNavigation.tolerancePx; at += step) stops.push(at);
     stops.push(end);
   }
   return [...new Set(stops)].sort((a, b) => a - b);
@@ -253,8 +300,8 @@ export function nextBlockScroll(blocks: { top: number; height: number }[], scrol
   viewport: number, header: number, direction: number, maxScroll: number) {
   if (!blocks.length) return null;
   const stops = blockScrollStops(blocks, viewport, header, maxScroll);
-  return direction > 0 ? stops.find(at => at > scroll + 2) ?? null
-    : stops.reverse().find(at => at < scroll - 2) ?? null;
+  return direction > 0 ? stops.find(at => at > scroll + blockNavigation.tolerancePx) ?? null
+    : stops.reverse().find(at => at < scroll - blockNavigation.tolerancePx) ?? null;
 }
 
 export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname: string) {
@@ -284,7 +331,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
         const card = element.matches(".work-section") ? first?.getBoundingClientRect() : null;
         return [{ top: window.scrollY + rect.top, height: card ? card.bottom - rect.top : rect.height }];
       });
-      const header = document.querySelector(".public-site > .header")?.getBoundingClientRect().height ?? 100;
+      const header = document.querySelector(".public-site > .header")?.getBoundingClientRect().height ?? blockNavigation.fallbackHeaderPx;
       return blockScrollStops(blocks, window.innerHeight, header, Math.max(0, document.documentElement.scrollHeight - window.innerHeight));
     }
     function cancel() {
@@ -296,17 +343,17 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       const start = window.scrollY, started = performance.now();
       window.dispatchEvent(new Event("blueprint-energy"));
       function move(time: number) {
-        const t = reduced ? 1 : Math.min(1, Math.max(0, (time - started) / 600));
+        const t = reduced ? 1 : Math.min(1, Math.max(0, (time - started) / blockNavigation.durationMs));
         window.scrollTo({ top: start + (target - start) * t * t * (3 - 2 * t), behavior: "instant" });
         if (t < 1) frame = requestAnimationFrame(move);
-        else { frame = null; unlock = setTimeout(() => { busy = false; }, 180); }
+        else { frame = null; unlock = setTimeout(() => { busy = false; }, blockNavigation.unlockMs); }
       }
       frame = requestAnimationFrame(move);
     }
     function advance(direction: number) {
       const values = stops();
-      const target = direction > 0 ? values.find(at => at > window.scrollY + 2)
-        : values.reverse().find(at => at < window.scrollY - 2);
+      const target = direction > 0 ? values.find(at => at > window.scrollY + blockNavigation.tolerancePx)
+        : values.reverse().find(at => at < window.scrollY - blockNavigation.tolerancePx);
       if (target !== undefined) go(target);
     }
     function wheel(event: WheelEvent) {
@@ -315,10 +362,10 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       event.preventDefault();
       if (busy) return;
       const now = performance.now();
-      if (now - lastWheel > 180) accumulated = 0;
+      if (now - lastWheel > blockNavigation.wheelResetMs) accumulated = 0;
       lastWheel = now;
-      accumulated += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
-      if (Math.abs(accumulated) < 45) return;
+      accumulated += event.deltaY * (event.deltaMode === 1 ? blockNavigation.wheelLinePx : event.deltaMode === 2 ? window.innerHeight : 1);
+      if (Math.abs(accumulated) < blockNavigation.wheelThresholdPx) return;
       advance(Math.sign(accumulated)); accumulated = 0;
     }
     function key(event: KeyboardEvent) {
@@ -331,11 +378,11 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
       if (coarsePointer.matches || busy || dragging || anchorNavigation || excluded(null)) return;
       const values = stops();
       const nearest = values.reduce((best, at) => Math.abs(at - window.scrollY) < Math.abs(best - window.scrollY) ? at : best, values[0] ?? 0);
-      if (Math.abs(nearest - window.scrollY) > 2) go(nearest);
+      if (Math.abs(nearest - window.scrollY) > blockNavigation.tolerancePx) go(nearest);
     }
     function scroll() {
       if (coarsePointer.matches || busy || anchorNavigation) return;
-      clearTimeout(settle); settle = setTimeout(snap, 180);
+      clearTimeout(settle); settle = setTimeout(snap, blockNavigation.scrollSettleMs);
     }
     function down(event: PointerEvent) {
       if (coarsePointer.matches || event.pointerType === "touch" || excluded(event.target)) return;
@@ -349,7 +396,7 @@ export function useBlockNavigation(root: RefObject<HTMLElement | null>, pathname
     function drag(event: PointerEvent) {
       if (!mouse || excluded(event.target)) return;
       const dy = mouse.y - event.clientY, dx = mouse.x - event.clientX;
-      if (Math.abs(dy) < 48 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
+      if (Math.abs(dy) < blockNavigation.dragThresholdPx || Math.abs(dy) < Math.abs(dx) * blockNavigation.dragVerticalRatio) return;
       event.preventDefault(); mouse = null; suppressClick = true;
       advance(Math.sign(dy));
     }

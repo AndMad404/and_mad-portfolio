@@ -114,10 +114,10 @@
     background-position: calc(0% - var(--space-1)) center;
   }
   .work-type-opener:is(:hover, :focus-visible, :active)::after {
-    animation: work-type-light-travel 280ms linear 80ms;
+    animation: work-type-light-travel var(--work-type-line-duration) linear var(--work-type-line-delay);
   }
   .public-site .work-type-opener:is(:hover, :focus-visible, :active) {
-    animation: work-type-label-glow 420ms ease-out 340ms;
+    animation: work-type-label-glow var(--work-type-label-duration) ease-out var(--work-type-label-delay);
   }
   @keyframes work-type-light-travel {
     to { background-position: calc(100% + var(--space-1)) center; }

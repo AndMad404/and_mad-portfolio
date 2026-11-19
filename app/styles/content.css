@@ -172,7 +172,7 @@
 .service-arrow {
   font-size: 30px;
   justify-self: end;
-  transition: transform 180ms;
+  transition: transform var(--service-arrow-feedback-duration);
   grid-column: 3;
   grid-row: 1;
 }
@@ -229,7 +229,7 @@
   min-width: 0;
   padding: var(--space-quarter);
   background: var(--color-surface);
-  animation: content-appear 180ms ease both;
+  animation: content-appear var(--demo-comparison-entrance-duration) ease both;
 }
 .comparison-panel[hidden] {
   display: none;

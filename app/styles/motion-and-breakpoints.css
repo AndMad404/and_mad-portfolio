@@ -1,7 +1,47 @@
+/* First-paint motion runs before hydration. Brand, menu and page content share
+   the same entrance endpoint. Interaction timings below belong to each control. */
+.public-site {
+  --intro-end: 1400ms;
+  --intro-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-enter-distance: 24px;
+  --pixel-step-duration: 240ms;
+  --brand-short-lead: 800ms;
+  --brand-contraction-lead: 400ms;
+  --brand-letter-duration: 520ms;
+  --brand-letter-stagger: 60ms;
+  --menu-ready-duration: 1ms;
+  --menu-ready-delay: calc(var(--intro-end) + 80ms);
+  --menu-enter-delay: calc(var(--intro-end) + 100ms);
+  --menu-enter-duration: 550ms;
+  --menu-enter-stagger: 80ms;
+
+  --button-feedback-duration: 160ms;
+  --language-switch-duration: 240ms;
+  --back-to-top-entrance-duration: 900ms;
+
+  --service-arrow-feedback-duration: 180ms;
+  --demo-comparison-entrance-duration: 180ms;
+  --demo-control-feedback-duration: 200ms;
+  --demo-content-entrance-duration: 200ms;
+  --folder-hover-duration: 420ms;
+
+  --modal-entrance-duration: 220ms;
+  --modal-return-feedback-duration: 160ms;
+  --modal-return-reveal-duration: 480ms;
+  --modal-return-reveal-delay: 260ms;
+  --modal-return-nudge-duration: 2.4s;
+  --modal-return-nudge-delay: 900ms;
+
+  --work-type-line-duration: 280ms;
+  --work-type-line-delay: 80ms;
+  --work-type-label-duration: 420ms;
+  --work-type-label-delay: 340ms;
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
-    translate: 0 24px;
+    translate: 0 var(--page-enter-distance);
   }
   to {
     opacity: 1;
@@ -48,64 +88,58 @@
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  /* Initial entry runs from the first styled paint, independently of hydration. */
-  .hero-copy > * {
-    animation: page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  }
-  .hero-copy > .eyebrow {
-    animation-delay: 0ms;
-  }
-  .hero-copy > h1 {
-    animation-delay: 80ms;
-  }
-  .hero-copy > .lede {
-    animation-delay: 180ms;
-  }
-  .hero-copy > .hero-actions {
-    animation-delay: 260ms;
-  }
-  .hero-copy > .hero-footnote {
-    animation-delay: 340ms;
-  }
-  /* The process demo and each detail heading use the same first-paint entry. */
+  .hero-copy > *,
   .editorial-demo > *,
   .back-link,
   .detail-heading > * {
-    animation: page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation: page-enter calc(var(--intro-end) - var(--intro-delay, 0ms))
+      var(--intro-easing) var(--intro-delay, 0ms) backwards;
+  }
+  .hero-copy > h1 {
+    --intro-delay: 80ms;
+  }
+  .hero-copy > .lede {
+    --intro-delay: 180ms;
+  }
+  .hero-copy > .hero-actions {
+    --intro-delay: 260ms;
+  }
+  .hero-copy > .hero-footnote {
+    --intro-delay: 340ms;
   }
   .editorial-demo > .demo-heading {
-    animation-delay: 120ms;
+    --intro-delay: 120ms;
   }
   .editorial-demo > .stage-controls {
-    animation-delay: 200ms;
+    --intro-delay: 200ms;
   }
   .editorial-demo > .stage-stack {
-    animation-delay: 280ms;
+    --intro-delay: 280ms;
   }
   .editorial-demo > .stage-description {
-    animation-delay: 360ms;
+    --intro-delay: 360ms;
   }
   .editorial-demo > .sample-note {
-    animation-delay: 420ms;
+    --intro-delay: 420ms;
   }
   .detail-heading > .eyebrow {
-    animation-delay: 60ms;
+    --intro-delay: 60ms;
   }
   .detail-heading > h1 {
-    animation-delay: 140ms;
+    --intro-delay: 140ms;
   }
   .detail-heading > .lede {
-    animation-delay: 240ms;
+    --intro-delay: 240ms;
   }
   .detail-heading > .tags {
-    animation-delay: 320ms;
+    --intro-delay: 320ms;
   }
   .pixel-mark[data-entered="true"] {
-    animation: pixel-step 240ms steps(2, end) 1;
+    animation: pixel-step var(--pixel-step-duration) steps(2, end) 1;
   }
   .brand:is(:hover, :focus-visible) .pixel-mark,
   .section-heading:hover .pixel-mark {
-    animation: pixel-step 240ms steps(2, end) 1;
+    animation: pixel-step var(--pixel-step-duration) steps(2, end) 1;
   }
 }
 /* Mobile is the base. These widths are CSS pixels, independent of screen DPR. */

@@ -15,7 +15,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ENERGY_CELL } from "../shared/BlueprintEnergy";
 import { useDocumentGrid } from "../shared/documentGrid";
 import { useReducedMotion } from "../shared/motion";
-import { usePageMotion, useBlockNavigation, visibleNavigationSection, activateSectionEnergy } from "./components/PageMotion";
+import { usePageMotion, useBlockNavigation, visibleNavigationSection, activateSectionEnergy, energySequenceStyle } from "./components/PageMotion";
 import { BlueprintBackground } from "./components/BlueprintBackground";
 import { BlueprintWindows } from "./components/BlueprintWindows";
 import { LanguagePicker } from "./components/LanguagePicker";
@@ -177,7 +177,7 @@ export default function Root() {
     return () => cancelAnimationFrame(frame);
   }, [location.hash, location.key, navigationType]);
   return (
-    <div className="public-site">
+    <div className="public-site" style={energySequenceStyle as React.CSSProperties}>
       <BlueprintBackground />
       <BlueprintWindows root={main} pathname={location.pathname} />
       <a className="skip" href="#main">

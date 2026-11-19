@@ -57,8 +57,8 @@
 }
 .language-es, .language-en { color: var(--color-steel); }
 @media (prefers-reduced-motion: no-preference) {
-  .language-toggle .language-light { transition: transform 240ms ease-in-out; }
-  .language-es, .language-en { transition: color 240ms ease, text-shadow 240ms ease; }
+  .language-toggle .language-light { transition: transform var(--language-switch-duration) ease-in-out; }
+  .language-es, .language-en { transition: color var(--language-switch-duration) ease, text-shadow var(--language-switch-duration) ease; }
 }
 /* Menu travel duration is doubled from 1.233333s to halve its cycle rate. */
 .nav-node .travelling-node { display: none; }

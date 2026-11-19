@@ -3,11 +3,46 @@ import { useReducedMotion } from "./motion";
 import { canvasPointAt, nodeAt } from "./lattice";
 import { pointOf } from "./lattice";
 import { createLattice, viewportGridMetrics } from "./lattice";
-import { ENERGY_CELL, advanceEnergy, createEnergySystem, energyEase, nodePower, linePower, energyNodeAt, stimulateEnergyNode, releaseEnergyPointer, pointerPower, pointerNeighbourhood, DOCUMENT_BOOT, documentReveal, documentActivity, createDocumentFlows, advanceDocumentFlows, type DocumentFlow } from "./BlueprintEnergy";
+import { ENERGY_CELL, advanceEnergy, createEnergySystem, energyEase, nodePower, linePower, energyNodeAt, stimulateEnergyNode, releaseEnergyPointer, pointerPower, pointerNeighbourhood, POINTER_PULSE, DOCUMENT_BOOT, DOCUMENT_ACTIVE_RATIO, PANEL_ENERGY, documentReveal, documentActivity, createDocumentFlows, advanceDocumentFlows, type DocumentFlow } from "./BlueprintEnergy";
 
 const CELL = ENERGY_CELL;
-const NODE_DURATION = 350;
-const CONNECTION_DURATION = 260;
+const graphMotion = {
+  nodeDurationMs: 350,
+  nodeDelayPerCellMs: 70,
+  majorNodeRadiusPx: 10,
+  nodeRadiusPx: 4,
+  connectionDurationMs: 260,
+  connectionLeadMs: 150,
+  branchLeadMs: 25,
+  branchStaggerMs: 35,
+  signalCount: 4,
+  signalSteps: 8,
+  signalBaseDurationMs: 5500,
+  signalDurationJitterMs: 3000,
+  signalLeadMs: 4400,
+  signalStaggerMs: 370,
+} as const;
+
+const documentPaint = {
+  maxFrameMs: 64,
+  flowRadiusPx: 8,
+  trailRadiusPx: 6,
+  pointerRadiusPx: 10,
+  trailFadeMs: 1800,
+  maxTrails: 128,
+} as const;
+
+const panelPaint = {
+  maxFrameMs: 40,
+  stimulationDecayMs: 550,
+  restRadiusPx: 4,
+  majorGlowExpansionPx: 6,
+  signalRadiusPx: 7,
+  pageInsetPx: 136,
+  coverInsetPx: 64,
+} as const;
+
+const pointerSpreadMs = (POINTER_PULSE.depth + 1) * POINTER_PULSE.stepMs;
 export function createBlueprintGraph(columns = 9, rows = 7, seed = 173) {
   if (!Number.isInteger(columns) || !Number.isInteger(rows) || columns < 2 || rows < 2 || columns * rows > 400) {
     throw new Error("Blueprint grid must contain 2–400 nodes with at least two rows and columns");
@@ -37,36 +72,37 @@ export function createBlueprintGraph(columns = 9, rows = 7, seed = 173) {
   }
   const nodes = Array.from({ length: columns * rows }, (_, id) => ({
     id, x: (id % columns) * CELL, y: Math.floor(id / columns) * CELL,
-    depth: depth.get(id)!, delay: Math.hypot(id % columns - centerCol, Math.floor(id / columns) - centerRow) * 70,
-    radius: (id % columns) % 2 === 0 && Math.floor(id / columns) % 2 === 0 ? 10 : 4,
+    depth: depth.get(id)!, delay: Math.hypot(id % columns - centerCol, Math.floor(id / columns) - centerRow) * graphMotion.nodeDelayPerCellMs,
+    radius: (id % columns) % 2 === 0 && Math.floor(id / columns) % 2 === 0 ? graphMotion.majorNodeRadiusPx : graphMotion.nodeRadiusPx,
   }));
   // Reveal the lattice along both axes, then propagate connections from each reached node.
-  const nodesReady = Math.max(...nodes.map(node => node.delay)) + NODE_DURATION;
-  const ready = new Map<number, number>([[start, nodesReady + 150]]);
+  const nodesReady = Math.max(...nodes.map(node => node.delay)) + graphMotion.nodeDurationMs;
+  const ready = new Map<number, number>([[start, nodesReady + graphMotion.connectionLeadMs]]);
   const branches = new Map<number, number>();
   const edges = parents.map(({ from, to }) => {
     const branch = branches.get(from) ?? 0;
     branches.set(from, branch + 1);
-    const delay = ready.get(from)! + 25 + branch * 35;
-    ready.set(to, delay + CONNECTION_DURATION);
+    const delay = ready.get(from)! + graphMotion.branchLeadMs + branch * graphMotion.branchStaggerMs;
+    ready.set(to, delay + graphMotion.connectionDurationMs);
     return { from, to, delay };
   });
   const adjacent = new Map(nodes.map(node => [node.id, [] as number[]]));
   for (const edge of edges) { adjacent.get(edge.from)!.push(edge.to); adjacent.get(edge.to)!.push(edge.from); }
-  const signals = Array.from({ length: 4 }, (_, id) => {
+  const signals = Array.from({ length: graphMotion.signalCount }, (_, id) => {
     let current = Math.floor(random() * nodes.length);
     let previous = -1;
     const route = [current];
-    for (let step = 0; step < 8; step++) {
+    for (let step = 0; step < graphMotion.signalSteps; step++) {
       const candidates = adjacent.get(current)!.filter(next => next !== previous);
       const choices = candidates.length ? candidates : adjacent.get(current)!;
       const next = choices[Math.floor(random() * choices.length)]!;
       previous = current; current = next; route.push(current);
     }
     return { id, route, path: route.map((node, i) => `${i ? "L" : "M"}${nodes[node]!.x} ${nodes[node]!.y}`).join(""),
-      duration: 5500 + Math.round(random() * 3000), delay: 4400 + id * 370 };
+      duration: graphMotion.signalBaseDurationMs + Math.round(random() * graphMotion.signalDurationJitterMs),
+      delay: graphMotion.signalLeadMs + id * graphMotion.signalStaggerMs };
   });
-  return { nodes, edges, signals, cell: CELL, nodeDuration: NODE_DURATION, connectionDuration: CONNECTION_DURATION };
+  return { nodes, edges, signals, cell: CELL, nodeDuration: graphMotion.nodeDurationMs, connectionDuration: graphMotion.connectionDurationMs };
 }
 const graph = createBlueprintGraph();
 /** Resting node colour: the site-wide --node-off token, so canvas and DOM nodes share one definition. */
@@ -122,7 +158,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       brush.fillStyle = glow; brush.fillRect(0, 0, 64, 64);
       return sprite;
     }
-    function light(x: number, y: number, alpha: number, radius = 10) {
+    function light(x: number, y: number, alpha: number, radius: number) {
       context!.globalAlpha = alpha;
       context!.drawImage(ensureSprite(), x - radius, y - radius, radius * 2, radius * 2);
     }
@@ -137,7 +173,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       const ratio = window.devicePixelRatio || 1;
       const pixelWidth = Math.max(1, Math.round(width * ratio)), pixelHeight = Math.max(1, Math.round(height * ratio));
       const moving = !query.matches && !pausedRef.current && document.visibilityState !== "hidden";
-      if (moving) clock += previous ? Math.max(0, Math.min(64, now - previous)) : 0;
+      if (moving) clock += previous ? Math.max(0, Math.min(documentPaint.maxFrameMs, now - previous)) : 0;
       previous = moving ? now : 0;
       const bootTime = query.matches ? DOCUMENT_BOOT.pointerStart : clock;
       if (!bootFinished) { dirty = true; bootFinished = bootTime >= DOCUMENT_BOOT.linesEnd; }
@@ -195,44 +231,43 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
           const a = pointOf(lattice, flow.from.col, flow.from.row), b = pointOf(lattice, flow.to.col, flow.to.row);
           const key = `${flow.from.col}:${flow.from.row}:${flow.to.col}:${flow.to.row}`;
           trails.set(key, { from: flow.from, to: flow.to, hit: clock, progress: t });
-          light(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, .95, 8);
+          light(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, .95, documentPaint.flowRadiusPx);
         }
         for (const [key, trail] of trails) {
-          const alpha = Math.max(0, 1 - (clock - trail.hit) / 1800);
-          if (!alpha || trails.size > 128) { trails.delete(key); continue; }
+          const alpha = Math.max(0, 1 - (clock - trail.hit) / documentPaint.trailFadeMs);
+          if (!alpha || trails.size > documentPaint.maxTrails) { trails.delete(key); continue; }
           const a = pointOf(lattice, trail.from.col, trail.from.row), b = pointOf(lattice, trail.to.col, trail.to.row);
           context!.globalAlpha = alpha * .6;
           context!.beginPath(); context!.moveTo(a.x, a.y);
           context!.lineTo(a.x + (b.x - a.x) * trail.progress, a.y + (b.y - a.y) * trail.progress); context!.stroke();
-          light(a.x, a.y, alpha * .65, 6);
+          light(a.x, a.y, alpha * .65, documentPaint.trailRadiusPx);
         }
         context!.globalAlpha = 1;
         host.dataset.energyLights = String(flows.length);
         host.dataset.viewportNodes = String(nodes);
-        host.dataset.activeRatio = "0.02";
+        host.dataset.activeRatio = String(DOCUMENT_ACTIVE_RATIO);
       }
       if (pulse && ready && !query.matches && !pausedRef.current && document.visibilityState !== "hidden") {
         const age = now - pulse.start;
-        const alpha = Math.max(0, Math.min(1, 1 - (now - pulse.released) / 450));
+        const alpha = Math.max(0, Math.min(1, 1 - (now - pulse.released) / POINTER_PULSE.fadeMs));
         context!.globalAlpha = alpha;
         context!.strokeStyle = "#87ceeb"; context!.lineWidth = 1.5;
         for (const edge of pulse.graph.edges) {
-          const t = energyEase((age - edge.depth * 180) / 180);
+          const t = energyEase((age - edge.depth * POINTER_PULSE.stepMs) / POINTER_PULSE.stepMs);
           if (!t) continue;
           const a = pointOf(grid.lattice, edge.from.col, edge.from.row), b = pointOf(grid.lattice, edge.to.col, edge.to.row);
           context!.beginPath(); context!.moveTo(a.x, a.y);
           context!.lineTo(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t); context!.stroke();
         }
         for (const node of pulse.graph.nodes) {
-          const t = energyEase((age - node.depth * 180) / 180);
+          const t = energyEase((age - node.depth * POINTER_PULSE.stepMs) / POINTER_PULSE.stepMs);
           if (!t) continue;
           const p = pointOf(grid.lattice, node.col, node.row), x = p.x, y = p.y;
-          context!.globalAlpha = alpha * t;
-          context!.drawImage(ensureSprite(), x - 10, y - 10, 20, 20);
+          light(x, y, alpha * t, documentPaint.pointerRadiusPx);
         }
         context!.globalAlpha = 1;
         if (alpha === 0) pulse = null;
-        else if (age < 720 || pulse.released !== Infinity) schedule();
+        else if (age < pointerSpreadMs || pulse.released !== Infinity) schedule();
       }
       if (moving) schedule();
       host.dataset.gridOriginX = String(grid.lattice.phaseX); host.dataset.gridOriginY = String(grid.lattice.phaseY);
@@ -376,11 +411,11 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
     function draw(now: number) {
       frame = null;
       if (width <= 0 || height <= 0) return;
-      const delta = previous ? Math.min(40, now - previous) : 0;
+      const delta = previous ? Math.min(panelPaint.maxFrameMs, now - previous) : 0;
       previous = now;
       const staticFrame = query.matches;
-      clock = staticFrame ? 2000 : clock + delta;
-      const stimulation = Math.exp(-(clock - pulse) / 550);
+      clock = staticFrame ? PANEL_ENERGY.staticFrameMs : clock + delta;
+      const stimulation = Math.exp(-(clock - pulse) / panelPaint.stimulationDecayMs);
       if (!staticFrame) advanceEnergy(system, clock, delta, stimulation);
       context!.clearRect(0, 0, width, height);
       context!.lineWidth = 1.2; context!.strokeStyle = "#4682b4";
@@ -397,16 +432,16 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
         context!.lineTo(from.x + (to.x - from.x) * line.progress, from.y + (to.y - from.y) * line.progress); context!.stroke();
       }
       for (const node of system.nodes) {
-        const boot = energyEase((clock - node.born) / 450);
+        const boot = energyEase((clock - node.born) / PANEL_ENERGY.revealMs);
         const hover = system.pointerNodes.get(node.id);
         const power = Math.max(nodePower(clock, node.hit), hover ? pointerPower(clock, hover.hit, hover.releasedAt) : 0);
-        light(node.x, node.y, 4, boot, rest);
-        light(node.x, node.y, 4 + (node.large ? power * 6 : 0), boot * (power * .7 + stimulation * .12));
+        light(node.x, node.y, panelPaint.restRadiusPx, boot, rest);
+        light(node.x, node.y, panelPaint.restRadiusPx + (node.large ? power * panelPaint.majorGlowExpansionPx : 0), boot * (power * .7 + stimulation * .12));
       }
-      if (!staticFrame && clock >= 1900) for (const signal of system.lights) {
+      if (!staticFrame && clock >= PANEL_ENERGY.energyStartMs) for (const signal of system.lights) {
         const from = system.nodes[signal.from]!, to = system.nodes[signal.to]!;
         const t = energyEase(signal.progress);
-        light(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, 7, .95);
+        light(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, panelPaint.signalRadiusPx, .95);
       }
       context!.globalAlpha = 1;
       element!.parentElement!.dataset.runtime = "ready";
@@ -420,7 +455,7 @@ export function BlueprintBackground({ paused = false, variant = "page" }: {
       width = nextWidth; height = nextHeight; pixelRatio = ratio;
       surface!.width = Math.round(width * ratio); surface!.height = Math.round(height * ratio);
       context!.setTransform(surface!.width / width, 0, 0, surface!.height / height, 0, 0);
-      system = createEnergySystem(width, height, Math.random, variant === "page" ? 136 : 64); clock = 0; previous = 0; hoveredNode = null;
+      system = createEnergySystem(width, height, Math.random, variant === "page" ? panelPaint.pageInsetPx : panelPaint.coverInsetPx); clock = 0; previous = 0; hoveredNode = null;
       schedule();
     }
     function schedule() {

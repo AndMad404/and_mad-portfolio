@@ -1,5 +1,7 @@
 /* One profile block: semantic groups share the same node separators as services. */
 .public-site {
+  --energy-first-node-delay: calc(var(--energy-sequence-lead) + var(--energy-text-duration));
+  --energy-first-description-delay: calc(var(--energy-first-node-delay) + var(--energy-node-duration));
   --content-node-size: clamp(.375rem, .25rem + .6vw, .625rem);
 }
 .public-site .services-section {
@@ -101,7 +103,7 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .is-section-energized [data-energy-intro] {
-    animation: energy-text-glow calc(600ms * var(--energy-time-scale, 1)) ease-out calc(120ms * var(--energy-time-scale, 1));
+    animation: energy-text-glow calc(var(--energy-text-duration) * var(--energy-time-scale, 1)) ease-out calc(var(--energy-sequence-lead) * var(--energy-time-scale, 1));
   }
 }
 .service-offer li + li { margin-top: var(--space-eighth); }
@@ -164,13 +166,13 @@
   .public-site .services-section .service-row {
     --service-step-duration: calc(var(--energy-node-duration) + var(--energy-text-duration) + var(--service-list-glow-duration));
     --service-sequence-offset: calc(var(--service-sequence-index, 0) * var(--service-step-duration));
-    --energy-node-delay: calc(720ms + var(--service-sequence-offset));
+    --energy-node-delay: calc(var(--energy-first-node-delay) + var(--service-sequence-offset));
     --energy-title-delay: calc(var(--energy-node-delay) + var(--energy-node-duration));
     --energy-description-delay: calc(var(--energy-title-delay) + var(--energy-text-duration));
   }
   @media (prefers-reduced-motion: no-preference) {
     .public-site .services-section.is-section-energized #services-title {
-      animation: energy-text-glow calc(600ms * var(--energy-time-scale)) ease-out calc(120ms * var(--energy-time-scale));
+      animation: energy-text-glow calc(var(--energy-text-duration) * var(--energy-time-scale)) ease-out calc(var(--energy-sequence-lead) * var(--energy-time-scale));
     }
     /* Individual intersection events must not start a row before the section. */
     .public-site .services-section:not(.is-section-energized) .service-row.is-energized
@@ -203,22 +205,20 @@
  * Title 120–720 ms; point 720–1620 ms; description 1620–2220 ms.
  * Only glyphs glow; no painted rectangle or permanent animation effect. */
 [data-energy-sequence] {
-  --energy-text-duration: 600ms;
-  --energy-title-delay: 120ms;
-  --energy-node-delay: 720ms;
-  --energy-node-duration: 900ms;
-  --energy-description-delay: 1620ms;
+  --energy-title-delay: var(--energy-sequence-lead);
+  --energy-node-delay: var(--energy-first-node-delay);
+  --energy-description-delay: var(--energy-first-description-delay);
 }
 @media (prefers-reduced-motion: no-preference) {
   .is-section-energized [data-energy-node] > i:not(.service-node-traveller),
   .is-section-energized [data-energy-node]::before,
   .is-section-energized :is(.profile-context, .profile-process)::before {
-    animation: energy-node-glow calc(900ms * var(--energy-time-scale, 1)) ease-out
-      calc(var(--energy-node-delay, 720ms) * var(--energy-time-scale, 1));
+    animation: energy-node-glow calc(var(--energy-node-duration) * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-node-delay, var(--energy-first-node-delay)) * var(--energy-time-scale, 1));
   }
   .public-site .is-section-energized .service-offer li::before {
-    animation: energy-node-glow calc(var(--service-list-glow-duration, 900ms) * var(--energy-time-scale, 1)) ease-out
-      calc(var(--energy-description-delay, 1620ms) * var(--energy-time-scale, 1));
+    animation: energy-node-glow calc(var(--service-list-glow-duration, var(--energy-node-duration)) * var(--energy-time-scale, 1)) ease-out
+      calc(var(--energy-description-delay, var(--energy-first-description-delay)) * var(--energy-time-scale, 1));
   }
   @keyframes energy-node-glow {
     45% { background-color: var(--node-on); filter: var(--node-halo-filter); }

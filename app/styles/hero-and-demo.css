@@ -112,8 +112,8 @@
   margin-right: 0;
   transform: translateX(0);
   transition:
-    transform 200ms ease,
-    border-color 200ms ease;
+    transform var(--demo-control-feedback-duration) ease,
+    border-color var(--demo-control-feedback-duration) ease;
   min-width: 0;
 }
 .stage-card.stage-1 {
@@ -187,7 +187,7 @@
 }
 .stage-description > span {
   display: block;
-  animation: content-appear 200ms ease both;
+  animation: content-appear var(--demo-content-entrance-duration) ease both;
 }
 .public-site .sample-note {
   font:

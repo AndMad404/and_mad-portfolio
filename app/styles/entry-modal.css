@@ -121,7 +121,7 @@
   .public-site .entry-modal .editorial-detail > :nth-child(n + 3) { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .entry-modal[open] { animation: content-appear 220ms ease-out; }
+  .entry-modal[open] { animation: content-appear var(--modal-entrance-duration) ease-out; }
 }
 .public-site .area-summary .detail-heading { max-width: 65ch; }
 .area-summary :is(h3, h4) {
@@ -224,7 +224,7 @@
   34% { translate: -3px 0; }
 }
 /* Opacity only: a transform on the dialog would make it the containing block of the fixed
-   control for the first 220ms and shift it off the back-to-top position. */
+   control during the entrance and shift it off the back-to-top position. */
 @keyframes return-dialog-fade {
   from { opacity: .65; }
 }
@@ -249,7 +249,7 @@
     font-size: var(--text-ui);
     font-weight: 700;
     touch-action: manipulation;
-    transition: border-color 160ms, box-shadow 160ms, scale 160ms;
+    transition: border-color var(--modal-return-feedback-duration), box-shadow var(--modal-return-feedback-duration), scale var(--modal-return-feedback-duration);
   }
   .public-site .entry-modal-folder .area-modal-actions .entry-modal-close:is(:hover, :focus-visible) {
     border-color: var(--color-sky);
@@ -283,14 +283,14 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   @media (pointer: coarse), (max-width: 47.99rem) {
-    .public-site .entry-modal-folder[open] { animation: return-dialog-fade 220ms ease-out; }
+    .public-site .entry-modal-folder[open] { animation: return-dialog-fade var(--modal-entrance-duration) ease-out; }
     .public-site .entry-modal-folder .area-modal-actions .entry-modal-arrow {
       animation:
-        return-arrow-turn 480ms cubic-bezier(.22, 1, .36, 1) 260ms backwards,
-        return-arrow-nudge 2.4s ease-in-out 900ms infinite;
+        return-arrow-turn var(--modal-return-reveal-duration) cubic-bezier(.22, 1, .36, 1) var(--modal-return-reveal-delay) backwards,
+        return-arrow-nudge var(--modal-return-nudge-duration) ease-in-out var(--modal-return-nudge-delay) infinite;
     }
     .public-site .entry-modal-folder .area-modal-actions .entry-modal-close-label {
-      animation: return-label-unfold 480ms cubic-bezier(.22, 1, .36, 1) 260ms backwards;
+      animation: return-label-unfold var(--modal-return-reveal-duration) cubic-bezier(.22, 1, .36, 1) var(--modal-return-reveal-delay) backwards;
     }
   }
 }

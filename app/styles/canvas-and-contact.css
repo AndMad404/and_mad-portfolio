@@ -131,7 +131,7 @@
   82% { translate: 0 -2px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .public-site .back-to-top { animation: back-to-top-intro 900ms ease-out 1; }
+  .public-site .back-to-top { animation: back-to-top-intro var(--back-to-top-entrance-duration) ease-out 1; }
 }
 
 /* One controller owns settling after wheel, touch and scrollbar gestures. */
